@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">SMILE</string>
+    <string name="comands">Команды</string>
+    <string name="more_comands">Много разных функций</string>
+    <string-array name="group_array">
+        <item>Управление расписанием</item>
+        <item>Финансовая грамотность</item>
+        <item>Образовательные функции</item>
+        <item>Безопасность</item>
+        <item>Развлекательные/прочие</item>
+    </string-array>
+    <string-array name="group_roles">
+        <item>Для родителей</item>
+        <item>Для ребенка</item>
+    </string-array>
+    <string name="preference_file_key">SMILE_FACE_APP</string>
+</resources>
