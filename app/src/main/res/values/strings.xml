@@ -4,7 +4,6 @@
     <string name="more_comands">Много разных функций</string>
     <string-array name="group_array">
         <item>Управление расписанием</item>
-        <item>Финансовая грамотность</item>
         <item>Образовательные функции</item>
         <item>Безопасность</item>
         <item>Развлекательные/прочие</item>

@@ -2,13 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"></uses-permission>
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <uses-permission-sdk-23 android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
@@ -42,6 +50,7 @@
             android:name=".MyNewIntentService"
             android:enabled="true"
             android:exported="true"></service>
+        <service android:name=".VoiceTriggerServie" android:enabled="true" android:exported="true" android:foregroundServiceType="microphone"></service>
 
         <activity
             android:name=".MainActivity2"
