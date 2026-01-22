@@ -89,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
     private SoundPool sounds;
     private static final int SPEECH_REQUEST_CODE = 77712345;
     public Markov mc;
-    private String apiKey = "AQ.Ab8RN6L5w1VzlhgFCK2dh6A0cWs4hEIdCZsXYBSIQ4tFa-iuxA";
     String modelId = "gemini-2.5-flash";
     private SpeechRecognizer speechRecognizer;
 
@@ -100,9 +99,9 @@ public class MainActivity extends AppCompatActivity {
     public static String generateContent(String modelId, String res) {
         // Initialize client that will be used to send requests. This client only needs to be created
         // once, and can be reused for multiple requests.
-
+        Secret secret = new Secret();
         try (Client client =
-                     Client.builder().apiKey("AQ.Ab8RN6L5w1VzlhgFCK2dh6A0cWs4hEIdCZsXYBSIQ4tFa-iuxA")
+                     Client.builder().apiKey(secret.keyAI)
                              //.location("global")
                              .vertexAI(true)
                              .httpOptions(HttpOptions.builder().apiVersion("v1").build())
@@ -292,7 +291,8 @@ public class MainActivity extends AppCompatActivity {
         });
         System.setProperty("GOOGLE_CLOUD_PROJECT", "polynomial-alpha-sns1n");
         System.setProperty("GOOGLE_GENAI_USE_VERTEXAI", "True");
-        System.setProperty("API_KEY", "AQ.Ab8RN6L5w1VzlhgFCK2dh6A0cWs4hEIdCZsXYBSIQ4tFa-iuxA");
+        Secret secret = new Secret();
+        System.setProperty("API_KEY", secret.keyAI);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
