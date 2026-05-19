@@ -50,6 +50,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.smile.tts.TTSManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton sendCommand;
     private ImageButton speechTotext;
     private EditText comandToSend;
-    private TextToSpeech textToSpeech;
+    private TTSManager ttsManager;
     private SoundPool sounds;
     private static final int SPEECH_REQUEST_CODE = 77712345;
     public Markov mc;
@@ -202,14 +203,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void respondToTrigger() {
-        if (textToSpeech != null) {
+        if (ttsManager != null) {
             String response = "я тебя слушаю";
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                textToSpeech.speak(response, TextToSpeech.QUEUE_FLUSH, null, "main");
-            } else {
-                textToSpeech.speak(response, TextToSpeech.QUEUE_FLUSH, null);
-            }
+            ttsManager.speak(response);
 
             //stopVoiceTriggerService();
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
@@ -252,9 +249,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Останавливаем TTS
-        if (textToSpeech != null) {
-            textToSpeech.stop();
-            textToSpeech.shutdown();
+        if (ttsManager != null) {
+            ttsManager.shutdown();
         }
         if (player != null) {
             player.release();
@@ -323,64 +319,14 @@ public class MainActivity extends AppCompatActivity {
         } else {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CALL_PHONE}, 123);
         }
-        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        // инициализация TTSManager
+        ttsManager = new TTSManager(this, new TTSManager.TTSListener() {
             @Override
-            public void onInit(int status) {
-                if (status != TextToSpeech.ERROR) {
-                    textToSpeech.setLanguage(new Locale("RU"));
-
-                    Set<Voice> voices = textToSpeech.getVoices();
-
-                    // Вывести все доступные голоса для отладки
-                    for (Voice voice : voices) {
-                        if(voice.getName().contains("ru")) {
-                            Log.d("TTS Voice", "Name: " + voice.getName() +
-                                    ", Locale: " + voice.getLocale() +
-                                    ", Features: " + voice.getFeatures());
-                        }
-                    }
-
-                    // Выбрать голос по имени или характеристикам
-                    Voice selectedVoice = null;
-                    for (Voice voice : voices) {
-                        // Пример выбора по различным критериям
-                        if (voice.getName().contains("ru")) {
-                            System.out.println(voice.getLocale().getCountry());
-                            selectedVoice = voice;
-                            break;
-                        }
-                    }
-
-                    if (selectedVoice != null) {
-                        textToSpeech.setVoice(selectedVoice);
-                    }
-                    textToSpeech.speak("Привет! Чем могу сегодня помочь?", TextToSpeech.QUEUE_FLUSH, null, null);
-
-                }
+            public void onSpeakDone(String utteranceId) {
+                Log.d("TTS", "Speech finished: " + utteranceId);
             }
         });
-        textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {
-                // Speaking started.
 
-            }
-
-            @Override
-            public void onDone(String utteranceId) {
-                if (Objects.equals(utteranceId, "mainGeneral")){
-                    //startVoiceTriggerService();
-                }
-
-            }
-
-
-
-        @Override
-        public void onError(String utteranceId) {
-            // There was an error.
-        }
-    });
         createSoundPool();
         // получение вью нижнего экрана
         LinearLayout llBottomSheet = (LinearLayout) findViewById(R.id.bottom_sheet);
@@ -400,6 +346,7 @@ public class MainActivity extends AppCompatActivity {
         messagesAdapter.add("Нужную тебе команду можешь также выбрать прямиком из списка.");
         messagesAdapter.add("Просто поговорить с помощником можно голосом нажав на микрофон или в окошко сверху микрофона и нажав кнопку снизу справа.");
         messagesAdapter.add("СМАЙЛИК: Привет! Чем могу сегодня помочь?");
+
 
         messagesAdapter.notifyDataSetChanged();
 
@@ -423,11 +370,7 @@ public class MainActivity extends AppCompatActivity {
 
 // Выполняем переход
                     messagesAdapter.add("СМАЙЛИК: Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них");
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        textToSpeech.speak("Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них", TextToSpeech.QUEUE_FLUSH, null, null);
-                    } else {
-                        textToSpeech.speak("Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них", TextToSpeech.QUEUE_FLUSH, null);
-                    }
+                    ttsManager.speak("Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них");
                     messagesAdapter.notifyDataSetChanged();
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                     Uri uri = Uri.fromParts("package", getPackageName(), null);
@@ -435,22 +378,18 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 }else if (command.equalsIgnoreCase("Разговор с ИИ")) {
                     messagesAdapter.add("СМАЙЛИК: Я готов поговорить или помочь в любое время. Просто обратись ко мне");
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        textToSpeech.speak("Я готов поговорить или помочь в любое время. Просто обратись ко мне", TextToSpeech.QUEUE_FLUSH, null, null);
-                    } else {
-                        textToSpeech.speak("Я готов поговорить или помочь в любое время. Просто обратись ко мне", TextToSpeech.QUEUE_FLUSH, null);
-                    }
+                    ttsManager.speak("Я готов поговорить или помочь в любое время. Просто обратись ко мне");
                     messagesAdapter.notifyDataSetChanged();
                 } else if (command.equalsIgnoreCase("Включи радио")){ // TODO:РЕФАКТОРИТЬ ЭТО ДЕЛО В БЛИЖАЙШЕЕ ВРЕМЯ!!!!!!! С такой архитектурой долго не протянуть!!!
                     messagesAdapter.add("СМАЙЛИК: Включаю радио");
                     player.play();
-                    textToSpeech.speak("Включаю радио", TextToSpeech.QUEUE_FLUSH, null, null);
+                    ttsManager.speak("Включаю радио");
                     messagesAdapter.notifyDataSetChanged();
                 }
                 else if (command.equalsIgnoreCase("Выключи радио")){ // TODO:РЕФАКТОРИТЬ ЭТО ДЕЛО В БЛИЖАЙШЕЕ ВРЕМЯ!!!!!!! С такой архитектурой долго не протянуть!!!
                     messagesAdapter.add("СМАЙЛИК: Выключаю радио");
                     player.stop();
-                    textToSpeech.speak("Выключаю радио", TextToSpeech.QUEUE_FLUSH, null, null);
+                    ttsManager.speak("Выключаю радио");
                     messagesAdapter.notifyDataSetChanged();
                 }
                 else if (command.contains("Задать сос-номер")){
@@ -464,11 +403,7 @@ public class MainActivity extends AppCompatActivity {
                         editor.apply();
                     }
                     messagesAdapter.add("СМАЙЛИК: Номер задан");
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        textToSpeech.speak("Номер задан", TextToSpeech.QUEUE_FLUSH, null, null);
-                    } else {
-                        textToSpeech.speak("Номер задан", TextToSpeech.QUEUE_FLUSH, null);
-                    }
+                    ttsManager.speak("Номер задан");
                     messagesAdapter.notifyDataSetChanged();
                 }
                 else if (command.equalsIgnoreCase("Мой баланс")) {
@@ -478,9 +413,9 @@ public class MainActivity extends AppCompatActivity {
                     int balance = Integer.parseInt(sharedPref.getString("BALANCE", "1000"));
                     //messagesAdapter.add("Ты: Мой баланс");
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        textToSpeech.speak("У тебя на счету " + balance + " рублей", TextToSpeech.QUEUE_FLUSH, null, null);
+                        ttsManager.speak("У тебя на счету " + balance + " рублей");
                     } else {
-                        textToSpeech.speak("У тебя на счету " + balance + " рублей", TextToSpeech.QUEUE_FLUSH, null);
+                        ttsManager.speak("У тебя на счету " + balance + " рублей");
                     }
                     messagesAdapter.add("СМАЙЛИК: У тебя на счету " + balance + " рублей");
                 }else if (command.contains("напомни")){
@@ -564,7 +499,7 @@ public class MainActivity extends AppCompatActivity {
                             try {
                                 String senten = generateContent(modelId, command);
                                 System.out.println(senten);
-                                textToSpeech.speak(senten, TextToSpeech.QUEUE_FLUSH, null, null);
+                                ttsManager.speak(senten);
                                 messagesAdapter.add("СМАЙЛИК: " + senten);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -676,11 +611,7 @@ public class MainActivity extends AppCompatActivity {
 
 // Выполняем переход
                     messagesAdapter.add("СМАЙЛИК: Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них");
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        textToSpeech.speak("Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них", TextToSpeech.QUEUE_FLUSH, null, null);
-                    } else {
-                        textToSpeech.speak("Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них", TextToSpeech.QUEUE_FLUSH, null);
-                    }
+                    ttsManager.speak("Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них");
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                     Uri uri = Uri.fromParts("package", getPackageName(), null);
                     intent.setData(uri);
@@ -689,11 +620,7 @@ public class MainActivity extends AppCompatActivity {
                 if (spinner.getSelectedItemId() == 1) {
                     if (i == 0) {
                         messagesAdapter.add("СМАЙЛИК: Я готов поговорить или помочь в любое время. Просто обратись ко мне");
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            textToSpeech.speak("Я готов поговорить или помочь в любое время. Просто обратись ко мне", TextToSpeech.QUEUE_FLUSH, null, null);
-                        } else {
-                            textToSpeech.speak("Я готов поговорить или помочь в любое время. Просто обратись ко мне", TextToSpeech.QUEUE_FLUSH, null);
-                        }
+                        ttsManager.speak("Я готов поговорить или помочь в любое время. Просто обратись ко мне");
                         messagesAdapter.notifyDataSetChanged();
                     } else if (i == 1) {
                         startActivity(intent7);
@@ -703,14 +630,14 @@ public class MainActivity extends AppCompatActivity {
                     if(i == 0){
                             messagesAdapter.add("СМАЙЛИК: Включаю радио");
                             player.play();
-                            textToSpeech.speak("Включаю радио", TextToSpeech.QUEUE_FLUSH, null, null);
+                            ttsManager.speak("Включаю радио");
                             messagesAdapter.notifyDataSetChanged();
 
                     }
                     else if (i == 1){
                         messagesAdapter.add("СМАЙЛИК: Выключаю радио");
                         player.stop();
-                        textToSpeech.speak("Выключаю радио", TextToSpeech.QUEUE_FLUSH, null, null);
+                        ttsManager.speak("Выключаю радио");
                         messagesAdapter.notifyDataSetChanged();
                     }
                 }
@@ -736,19 +663,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void createSoundPool() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            createNewSoundPool();
-        } else {
-            createOldSoundPool();
-        }
+        createNewSoundPool();
     }
-    private void speakkk(String text){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "mainGeneral");
-        } else {
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null);
-        }
-    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -770,7 +687,7 @@ public class MainActivity extends AppCompatActivity {
 
 // Выполняем переход
                         messagesAdapter.add("СМАЙЛИК: Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них");
-                        speakkk("Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них");
+                        ttsManager.speak("Выключить уведомления ты можешь перейдя в настройки приложения и выключив Уведомления в них");
                         messagesAdapter.notifyDataSetChanged();
                         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                         Uri uri = Uri.fromParts("package", getPackageName(), null);
@@ -782,20 +699,20 @@ public class MainActivity extends AppCompatActivity {
                                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
                         int balance = Integer.parseInt(sharedPref.getString("BALANCE", "1000"));
                         messagesAdapter.add("Ты: Мой баланс");
-                        speakkk("У тебя на счету " + balance + " рублей");
+                        ttsManager.speak("У тебя на счету " + balance + " рублей");
                         messagesAdapter.add("СМАЙЛИК: У тебя на счету " + balance + " рублей");
                     } else if (command.equalsIgnoreCase("копилка")) {
                         startActivity(intent7);
                     }
                     else if (command.equalsIgnoreCase("Включи радио")){
                         messagesAdapter.add("СМАЙЛИК: Включаю радио");
-                        textToSpeech.speak("Включаю радио", TextToSpeech.QUEUE_FLUSH, null, null);
+                        ttsManager.speak("Включаю радио");
                         player.play();
                         messagesAdapter.notifyDataSetChanged();
                     }
                     else if (command.equalsIgnoreCase("Выключи радио")){
                         messagesAdapter.add("СМАЙЛИК: Выключаю радио");
-                        textToSpeech.speak("Выключаю радио", TextToSpeech.QUEUE_FLUSH, null, null);
+                        ttsManager.speak("Выключаю радио");
                         player.stop();
                         messagesAdapter.notifyDataSetChanged();
                     }
@@ -882,7 +799,7 @@ public class MainActivity extends AppCompatActivity {
                                 try {
                                     String senten = generateContent(modelId, command);
                                     System.out.println(senten);
-                                    speakkk(senten);
+                                    ttsManager.speak(senten);
                                     messagesAdapter.add("СМАЙЛИК: " + senten);
                                 } catch (Exception e) {
                                     e.printStackTrace();
