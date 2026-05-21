@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.cardview)
     implementation("com.google.genai:google-genai:1.23.0")
     implementation("androidx.media3:media3-exoplayer:1.0.0")
+    implementation("com.davoice:keyworddetection:1.0.0")
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.work.runtime)
     testImplementation(libs.junit)
