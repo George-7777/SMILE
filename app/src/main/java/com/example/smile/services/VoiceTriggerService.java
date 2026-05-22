@@ -1,5 +1,8 @@
 package com.example.smile.services;
 
+import static com.example.smile.Constant.SOS_WORD;
+import static com.example.smile.Constant.WAKE_WORD;
+
 import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -7,187 +10,318 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.media.AudioManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.smile.R;
+import com.example.smile.data.PreferencesManager;
+import com.example.smile.tts.TTSManager;
 
+import org.json.JSONObject;
+import org.vosk.Model;
+import org.vosk.Recognizer;
+import org.vosk.android.StorageService;
+
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class VoiceTriggerService extends Service {
-    private SpeechRecognizer speechRecognizer;
-    private Intent recognizerIntent;
+    private static final String TAG = "VoiceTrigger";
+
+    // Vosk components
+    private Model voskModel;
+    private Recognizer recognizer;
+    private AudioRecord audioRecord;
+    private HandlerThread audioThread;
     private boolean isListening = false;
-    private final String triggerPhrase = "смайлик";
-    public static final String ACTION_TRIGGER_DETECTED = "com.yourpackage.ACTION_TRIGGER_DETECTED";
-    public static final String EXTRA_TRIGGER_PHRASE = "СМАЙЛИК";
-    public static final String EXTRA_SOS_PHRASE = "сос";
+
+    // Audio parameters
+    private static final int SAMPLE_RATE = 16000;
+    private static final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
+    private static final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+
+    public static final String ACTION_TRIGGER_DETECTED = "com.smile.ACTION_TRIGGER_DETECTED";
+    public static final String EXTRA_TRIGGER_PHRASE = "trigger_phrase";
+    public static final String MODEL_NAME_RUS = "vosk-model-small-ru-0.22";
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private PreferencesManager preferencesManager;
+    private static boolean isSpeaking;
+    public static final TTSManager.TTSListener ttsStateListener = new TTSManager.TTSListener() {
+        @Override
+        public void onInit() {
+
+        }
+
+        @Override
+        public void onSpeakStart(String utteranceId) {
+            isSpeaking = true;
+            Log.d(TAG, "TTS начал говорить, wake word отключен");
+        }
+
+        @Override
+        public void onSpeakDone(String utteranceId) {
+            isSpeaking = false;
+            Log.d(TAG, "TTS закончил говорить, wake word включен");
+        }
+
+        @Override
+        public void onError(String utteranceId) {
+            isSpeaking = false;
+        }
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "Нет разрешения на запись аудио");
             return;
         }
 
-        initializeSpeechRecognizer();
-        startForegroundServiceNotification();
-    }
-
-    private void initializeSpeechRecognizer() {
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-
-        speechRecognizer.setRecognitionListener(new RecognitionListener() {
-            @Override
-            public void onReadyForSpeech(Bundle params) {
-                Log.d("VoiceTrigger", "Готов к распознаванию");
-            }
-
-            @Override
-            public void onBeginningOfSpeech() {
-                Log.d("VoiceTrigger", "Начало речи");
-            }
-
-            @Override
-            public void onRmsChanged(float rmsdB) {
-                // Визуализация уровня звука (опционально)
-            }
-
-            @Override
-            public void onBufferReceived(byte[] buffer) {}
-
-            @Override
-            public void onEndOfSpeech() {
-                Log.d("VoiceTrigger", "Конец речи");
-            }
-
-            @Override
-            public void onError(int error) {
-                String errorMessage;
-                switch (error) {
-                    case SpeechRecognizer.ERROR_AUDIO:
-                        errorMessage = "Ошибка аудио";
-                        break;
-                    case SpeechRecognizer.ERROR_CLIENT:
-                        errorMessage = "Ошибка клиента";
-                        break;
-                    case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-                        errorMessage = "Недостаточно прав";
-                        break;
-                    case SpeechRecognizer.ERROR_NETWORK:
-                        errorMessage = "Ошибка сети";
-                        break;
-                    case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
-                        errorMessage = "Таймаут сети";
-                        break;
-                    case SpeechRecognizer.ERROR_NO_MATCH:
-                        errorMessage = "Не распознано";
-                        break;
-                    case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-                        errorMessage = "Распознаватель занят";
-                        break;
-                    case SpeechRecognizer.ERROR_SERVER:
-                        errorMessage = "Ошибка сервера";
-                        break;
-                    case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                        errorMessage = "Таймаут речи";
-                        break;
-                    default:
-                        errorMessage = "Неизвестная ошибка";
-                }
-                Log.e("VoiceTrigger", "Ошибка распознавания: " + errorMessage);
-                restartListening();
-            }
-
-            @Override
-            public void onResults(Bundle results) {
-                ArrayList<String> matches = results.getStringArrayList(
-                        SpeechRecognizer.RESULTS_RECOGNITION
-                );
-
-                if (matches != null && !matches.isEmpty()) {
-                    String spokenText = matches.get(0).toLowerCase();
-                    Log.d("VoiceTrigger", "Распознано: " + spokenText);
-
-                    // Проверяем триггерную фразу
-                    if (spokenText.contains(triggerPhrase.toLowerCase())) {
-                        onTriggerDetected(spokenText);
-                    }
-
-                    if (spokenText.contains(EXTRA_SOS_PHRASE) || spokenText.contains("sons") || spokenText.contains("sos")){
-                        Context context = getApplicationContext();
-                        SharedPreferences sharedPref = context.getSharedPreferences(
-                                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-                        dialPhoneNumber(sharedPref.getString("NUMBER", "89124661718"));
-                    }
-                }
-
-                restartListening();
-            }
-
-            @Override
-            public void onPartialResults(Bundle partialResults) {}
-
-            @Override
-            public void onEvent(int eventType, Bundle params) {}
-        });
-
-        // Настраиваем intent для распознавания
-        recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ru-RU");
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
-
-
-
-        // Для отключения звука начала записи
-        //recognizerIntent.putExtra(RecognizerIntent.EXTRA_SIL, 0);
-
+        preferencesManager = new PreferencesManager(this);
+        initVosk();
+        startForegroundService();
         startListening();
     }
-    public void dialPhoneNumber(String phoneNumber) {
-        System.out.println("SOOOOOOOOOOOOOOOOOS");
-        Intent intent = new Intent(Intent.ACTION_CALL);
-        intent.setData(Uri.parse("tel:" +phoneNumber));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+
+    private void initVosk() {
+        StorageService.unpack(this, MODEL_NAME_RUS, MODEL_NAME_RUS,
+                (model) -> {
+                    try {
+                        voskModel = model;
+                        recognizer = new Recognizer(voskModel, SAMPLE_RATE);
+                        setupGrammar();
+                        Log.d(TAG, "Vosk инициализирован успешно");
+                    } catch (IOException e) {
+                        Log.e(TAG, "Ошибка загрузки модели: ", e);
+                        stopSelf();
+                    }
+                },
+                (exception) -> {
+                    Log.e("Vosk", "Ошибка загрузки модели: " + exception.getMessage());
+                    stopSelf();
+                }
+        );
+
     }
 
-    private void startForegroundServiceNotification() {
+    private void setupGrammar() {
+        List<String> grammarWords = new ArrayList<>();
+        grammarWords.add(WAKE_WORD);
+        grammarWords.add(SOS_WORD);
+
+        grammarWords.add("[unk]");
+
+        StringBuilder grammarJson = new StringBuilder("[");
+        for (int i = 0; i < grammarWords.size(); i++) {
+            if (i > 0) grammarJson.append(",");
+            grammarJson.append("\"").append(grammarWords.get(i)).append("\"");
+        }
+        grammarJson.append("]");
+
+        recognizer.setGrammar(grammarJson.toString());
+        Log.d(TAG, "Grammar настроен: " + grammarJson);
+    }
+
+    private void startListening() {
+        int bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            // человек должен был это разрешение дать ещё при входе в приложение
+            return;
+        }
+        audioRecord = new AudioRecord(
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                SAMPLE_RATE,
+                CHANNEL_CONFIG,
+                AUDIO_FORMAT,
+                bufferSize
+        );
+
+        audioThread = new HandlerThread("VoskAudioThread");
+        audioThread.start();
+        Handler audioHandler = new Handler(audioThread.getLooper());
+
+        audioRecord.startRecording();
+        isListening = true;
+
+        audioHandler.post(new Runnable() {
+            private final byte[] buffer = new byte[bufferSize];
+
+            @Override
+            public void run() {
+                while (isListening) {
+                    int bytesRead = audioRecord.read(buffer, 0, buffer.length);
+                    if (bytesRead > 0 && recognizer != null) {
+                        if (recognizer.acceptWaveForm(buffer, bytesRead)) {
+                            String result = recognizer.getResult();
+                            processResult(result);
+                        } else {
+                            String partial = recognizer.getPartialResult();
+                            if (partial != null && !partial.isEmpty()) {
+                                processPartialResult(partial);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        Log.d(TAG, "Начато прослушивание через Vosk");
+    }
+
+    private void processResult(String result) {
+        try {
+            JSONObject json = new JSONObject(result);
+            String text = json.optString("text", "").toLowerCase();
+
+            if (!text.isEmpty()) {
+                Log.d(TAG, "Распознано (final): " + text);
+                checkForWakeWords(text);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка обработки результата", e);
+        }
+    }
+
+    private void processPartialResult(String partial) {
+        try {
+            JSONObject json = new JSONObject(partial);
+            String text = json.optString("partial", "").toLowerCase();
+
+            if (!text.isEmpty()) {
+                Log.d(TAG, "Распознано (partial): " + text);
+                checkForWakeWords(text);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка обработки partial результата", e);
+        }
+    }
+
+    private void checkForWakeWords(String text) {
+        if (text.contains(WAKE_WORD.toLowerCase())) {
+            if (isSpeaking) {
+                Log.d(TAG, "Wake word ignored (TTS is speaking): " + text);
+                return;
+            }
+            Log.d(TAG, "Услышано: " + text);
+            onWakeWordDetected();
+        } else if (text.contains(SOS_WORD.toLowerCase()) ||
+                text.contains("sos") ||
+                text.contains("sons")) {
+            onSosDetected();
+        }
+    }
+
+    private void onWakeWordDetected() {
+        Log.d(TAG, "Wake word detected: " + WAKE_WORD);
+
+        stopListening();
+        Log.d("test", "wakeword");
+
+        sendTriggerBroadcast(WAKE_WORD);
+
+        mainHandler.postDelayed(() -> {
+            if (!isListening) {
+                startListening();
+            }
+        }, 5000);
+    }
+
+    private void onSosDetected() {
+        Log.d(TAG, "SOS detected!");
+        stopListening();
+
+        String phoneNumber = preferencesManager.getSosNumber();
+        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+            dialPhoneNumber(phoneNumber);
+        }
+
+        sendTriggerBroadcast(SOS_WORD);
+
+        mainHandler.postDelayed(() -> {
+            if (!isListening) {
+                startListening();
+            }
+        }, 30000);
+    }
+
+    private void dialPhoneNumber(String phoneNumber) {
+        Log.d(TAG, "Звонок...");
+        try {
+            Intent intent = new Intent(Intent.ACTION_CALL);
+            intent.setData(Uri.parse("tel:" + phoneNumber));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                startActivity(intent);
+            }
+            else {
+                Log.d(TAG, "Отсутствует разрешение");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка звонка: " + e.getMessage());
+        }
+    }
+
+    private void sendTriggerBroadcast(String spokenText) {
+        Intent broadcastIntent = new Intent(ACTION_TRIGGER_DETECTED);
+        broadcastIntent.putExtra(EXTRA_TRIGGER_PHRASE, spokenText);
+        broadcastIntent.putExtra("timestamp", System.currentTimeMillis());
+        sendBroadcast(broadcastIntent);
+    }
+
+    private void stopListening() {
+        isListening = false;
+
+        if (audioRecord != null) {
+            audioRecord.stop();
+            audioRecord.release();
+            audioRecord = null;
+        }
+
+        if (audioThread != null) {
+            audioThread.quitSafely();
+            audioThread = null;
+        }
+
+        if (recognizer != null) {
+            recognizer.reset();
+        }
+
+        Log.d(TAG, "Прослушивание остановлено");
+    }
+
+    private void startForegroundService() {
         NotificationChannel channel = new NotificationChannel(
                 "voice_assistant_channel",
                 "СМАЙЛИК",
                 NotificationManager.IMPORTANCE_LOW
         );
-        channel.setDescription("Фоновое прослушивание триггерной фразы");
-
         NotificationManager manager = getSystemService(NotificationManager.class);
         manager.createNotificationChannel(channel);
 
         Notification notification = new NotificationCompat.Builder(this, "voice_assistant_channel")
                 .setContentTitle("СМАЙЛИК")
-                .setContentText("Ожидание: \"" + triggerPhrase + "\"")
-                .setSmallIcon(R.drawable.__2025_10_14_215029) // Добавьте свою иконку
+                .setContentText("Слушаю: \"" + WAKE_WORD + "\" или \"" + SOS_WORD + "\"")
+                .setSmallIcon(R.drawable.baseline_mic_24)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .build();
@@ -195,120 +329,37 @@ public class VoiceTriggerService extends Service {
         startForeground(1, notification);
     }
 
-    private void startListening() {
-
-            AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-            // Сохраняем текущие настройки
-            int originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
-
-            // Отключаем системные звуки
-            audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
-
-            // После распознавания возвращаем
-            new Handler().postDelayed(() -> {
-                audioManager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
-                audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, originalVolume, 0);
-            }, 3000);
-
-//        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-//        int current_volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-//        AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-//        audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-        if (!isListening) {
-            try {
-                speechRecognizer.startListening(recognizerIntent);
-                isListening = true;
-                Log.d("VoiceTrigger", "Начато прослушивание");
-            } catch (Exception e) {
-                Log.e("VoiceTrigger", "Ошибка запуска: " + e.getMessage());
-            }
-        }
-    }
-
-    private void stopListening() {
-        if (isListening && speechRecognizer != null) {
-            speechRecognizer.stopListening();
-            isListening = false;
-        }
-        //AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        //audio.setStreamVolume(AudioManager.STREAM_MUSIC, audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
-               // AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-    }
-
-    private void restartListening() {
-        stopListening();
-        // Задержка перед перезапуском
-        new Handler(Looper.getMainLooper()).postDelayed(this::startListening, 500);
-    }
-
-    private void onTriggerDetected(String spokenText) {
-        Log.d("VoiceTrigger", "Триггерная фраза обнаружена: " + spokenText);
-        stopListening();
-        sendTriggerBroadcast(spokenText);
-        // звуковой сигнал
-        //playNotificationSound();
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            startListening();
-        }, 5000);
-    }
-
-    private void sendTriggerBroadcast(String spokenText) {
-        Intent broadcastIntent = new Intent(ACTION_TRIGGER_DETECTED);
-        broadcastIntent.putExtra(EXTRA_TRIGGER_PHRASE, spokenText);
-        broadcastIntent.putExtra("timestamp", System.currentTimeMillis());
-
-        // Отправляем broadcast
-        sendBroadcast(broadcastIntent);
-
-        // Для дополнительной безопасности можно использовать
-        // sendBroadcast(broadcastIntent, "com.yourpackage.permission.VOICE_TRIGGER");
-
-        Log.d("VoiceTrigger", "Broadcast отправлен");
-    }
-
-    private void playNotificationSound() {
-//        try {
-//            // Используем системный звук или ваш собственный
-//            Uri notificationUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-//            Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), notificationUri);
-//            if (ringtone != null) {
-//                ringtone.play();
-//            }
-//        } catch (Exception e) {
-//            Log.e("VoiceTrigger", "Ошибка воспроизведения звука: " + e.getMessage());
-//        }
-    }
-
     @Override
     public void onDestroy() {
         stopListening();
-        if (speechRecognizer != null) {
-            speechRecognizer.destroy();
+
+        if (recognizer != null) {
+            recognizer.close();
         }
+
+        if (voskModel != null) {
+            voskModel.close();
+        }
+
         super.onDestroy();
     }
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
-    // Статический метод для запуска сервиса
     public static void startService(Context context) {
         Intent serviceIntent = new Intent(context, VoiceTriggerService.class);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            System.out.println("printtt");
-            context.startForegroundService(serviceIntent);
-        } else {
-            context.startService(serviceIntent);
-        }
+        context.startForegroundService(serviceIntent);
     }
 
     public static void stopService(Context context) {
         Intent serviceIntent = new Intent(context, VoiceTriggerService.class);
         context.stopService(serviceIntent);
+    }
+    public static void setSpeakingState(boolean speaking) {
+        isSpeaking = speaking;
+        Log.d(TAG, "Speaking state changed to: " + speaking);
     }
 }

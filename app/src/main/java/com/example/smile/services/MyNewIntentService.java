@@ -33,12 +33,12 @@ public class MyNewIntentService extends IntentService {
         builder.setContentTitle("Напоминание");
         builder.setContentText(name);
         builder.setSmallIcon(R.drawable.__2025_10_14_215029);
-        NotificationChannel channel = new NotificationChannel("1", "Напоминания", NotificationManager.IMPORTANCE_DEFAULT);
+        NotificationChannel channel = new NotificationChannel("7", "Напоминания", NotificationManager.IMPORTANCE_DEFAULT);
         channel.enableLights(true);
         channel.setLightColor(Color.green(1));
         channel.setShowBadge(true);
         manager.createNotificationChannel(channel);
-        builder.setChannelId("1");
+        builder.setChannelId("7");
 
         Intent notifyIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 2, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
@@ -50,8 +50,15 @@ public class MyNewIntentService extends IntentService {
         managerCompat.notify(NOTIFICATION_ID, notificationCompat);
 
         ttsManager = new TTSManager(getApplicationContext(), new TTSManager.TTSListener() {
+            @Override
+            public void onInit() {
+                ttsManager.speak("Напоминаю " + name);
+            }
+
+            @Override public void onSpeakStart(String utteranceId) {}
             @Override public void onSpeakDone(String utteranceId) {}
+            @Override public void onError(String utteranceId) {}
         });
-        ttsManager.speak("Напоминаю " + name);
+
     }
 }

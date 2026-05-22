@@ -2,6 +2,8 @@ package com.example.smile.ui;
 
 import static android.app.PendingIntent.FLAG_IMMUTABLE;
 
+import static com.example.smile.Constant.WAKE_WORD;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -53,6 +55,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -69,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     private Spinner spinner;
     private ImageButton sendCommand;
     private ImageButton speechTotext;
-    private EditText comandToSend;
+    private EditText commandToSend;
     private TTSManager ttsManager;
     private AIProvider aiProvider;
     private static final int SPEECH_REQUEST_CODE = 77712345;
@@ -133,8 +136,9 @@ public class MainActivity extends AppCompatActivity {
                             VoiceTriggerService.EXTRA_TRIGGER_PHRASE
                     );
                     long timestamp = intent.getLongExtra("timestamp", 0);
-
-                    respondToTrigger();
+                    Log.d("test", "registerTriggerReceiver");
+                    if (Objects.equals(spokenText, WAKE_WORD))
+                        respondToTrigger();
                 }
             }
         };
@@ -149,13 +153,12 @@ public class MainActivity extends AppCompatActivity {
     private void respondToTrigger() {
         if (ttsManager != null) {
             String response = "я тебя слушаю";
+            Log.d("test", "respondToTrigger");
 
             ttsManager.speak(response);
 
             //stopVoiceTriggerService();
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                triggered();
-            }, 2000);
+            new Handler(Looper.getMainLooper()).postDelayed(this::triggered, 2000);
 
         }
     }
@@ -198,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
         if (radioPlayer != null) {
             radioPlayer.release();
         }
+        stopVoiceTriggerService();
     }
 
     private PendingIntent temp(String zapiska){
@@ -237,10 +241,26 @@ public class MainActivity extends AppCompatActivity {
 
         ttsManager = new TTSManager(this, new TTSManager.TTSListener() {
             @Override
+            public void onInit() {
+                ttsManager.speak("Привет! Чем могу сегодня помочь?");
+            }
+
+            @Override
+            public void onSpeakStart(String utteranceId) {
+
+            }
+
+            @Override
             public void onSpeakDone(String utteranceId) {
-                Log.d("TTS", "Speech finished: " + utteranceId);
+
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+
             }
         });
+
         preferencesManager = new PreferencesManager(this);
         radioPlayer = new RadioPlayer(this);
         aiProvider = new GeminiProvider(this);
@@ -266,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
         itemsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
         listView.setAdapter(itemsAdapter);
         listMessages.setAdapter(messagesAdapter);
-        comandToSend = findViewById(R.id.editTextText3);
+        commandToSend = findViewById(R.id.editTextText3);
         sendCommand = findViewById(R.id.imageButton5);
         setUpListViewListener();
         messagesAdapter.add("Информация: Список команд можно открыть по кнопке в левом нижнем углу.");
@@ -286,12 +306,12 @@ public class MainActivity extends AppCompatActivity {
         sendCommand.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String command = comandToSend.getText().toString();
+                String command = commandToSend.getText().toString();
                 if (command.isEmpty()) return;
 
                 messagesAdapter.add("Ты: " + command);
                 messagesAdapter.notifyDataSetChanged();
-                comandToSend.setText("");
+                commandToSend.setText("");
 
                 commandExecutor.execute(command, new CommandExecutor.CommandCallback() {
                     @Override public void onResult(String message) {}
@@ -419,7 +439,7 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             if (result != null && !result.isEmpty()) {
                 String command = result.get(0);
-                comandToSend.setText(command);
+                commandToSend.setText(command);
 
                 messagesAdapter.add("Ты: " + command);
                 messagesAdapter.notifyDataSetChanged();

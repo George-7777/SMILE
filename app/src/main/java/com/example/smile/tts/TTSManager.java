@@ -7,6 +7,8 @@ import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.util.Log;
 
+import com.example.smile.services.VoiceTriggerService;
+
 import java.util.Locale;
 import java.util.Set;
 
@@ -17,7 +19,10 @@ public class TTSManager {
     private TTSListener listener;
 
     public interface TTSListener {
+        void onInit();
+        void onSpeakStart(String utteranceId);
         void onSpeakDone(String utteranceId);
+        void onError(String utteranceId);
     }
 
     public TTSManager(Context context, TTSListener listener) {
@@ -31,21 +36,29 @@ public class TTSManager {
             if (status != TextToSpeech.ERROR) {
                 textToSpeech.setLanguage(new Locale("RU"));
                 setupVoice();
-                speak("Привет! Чем могу сегодня помочь?");
+                textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override
+                    public void onStart(String utteranceId) {
+                        if (listener != null) listener.onSpeakStart(utteranceId);
+                        Log.d("test", "govor");
+                        VoiceTriggerService.setSpeakingState(true);
+                    }
+
+                    @Override
+                    public void onDone(String utteranceId) {
+                        if (listener != null) listener.onSpeakDone(utteranceId);
+                        Log.d("test", "notGovor");
+                        VoiceTriggerService.setSpeakingState(false);
+                    }
+
+                    @Override
+                    public void onError(String utteranceId) {
+                        if (listener != null) listener.onError(utteranceId);
+                        VoiceTriggerService.setSpeakingState(false);
+                    }
+                });
+                listener.onInit();
             }
-        });
-
-        textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {}
-
-            @Override
-            public void onDone(String utteranceId) {
-                if (listener != null) listener.onSpeakDone(utteranceId);
-            }
-
-            @Override
-            public void onError(String utteranceId) {}
         });
     }
 
@@ -83,7 +96,7 @@ public class TTSManager {
     }
 
     public void speak(String text) {
-        speak(text, null);
+        speak(text, "some id");
     }
 
     public void shutdown() {
