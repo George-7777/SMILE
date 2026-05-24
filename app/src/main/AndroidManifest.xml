@@ -15,7 +15,8 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"></uses-permission>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <uses-permission-sdk-23 android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -49,8 +50,12 @@
         <service
             android:name=".services.MyNewIntentService"
             android:enabled="true"
-            android:exported="true"></service>
-        <service android:name=".services.VoiceTriggerService" android:enabled="true" android:exported="true" android:foregroundServiceType="microphone"></service>
+            android:exported="true" />
+        <service
+            android:name=".services.VoiceTriggerService"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="microphone" />
 
         <activity
             android:name=".ui.commandsView.MainActivity2"
@@ -64,6 +69,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.CallActivity"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            tools:targetApi="27" />
+
+        <meta-data
+            android:name="android.provider.APP_CATEGORY"
+            android:value="android.app.role.COMMUNICATIONS" />
     </application>
 
 </manifest>

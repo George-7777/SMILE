@@ -6,6 +6,7 @@ import static com.example.smile.Constant.WAKE_WORD;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,9 +15,12 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.View;
@@ -102,6 +106,16 @@ public class MainActivity extends AppCompatActivity {
                     permissionsNeeded.toArray(new String[0]),
                     PERMISSION_REQUEST_CODE
             );
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (!nm.canUseFullScreenIntent()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+
+                Toast.makeText(this, "Пожалуйста, разрешите приложению показывать полноэкранные уведомления для работы SOS-функции", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -201,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         if (radioPlayer != null) {
             radioPlayer.release();
         }
-        stopVoiceTriggerService();
+        //stopVoiceTriggerService();
     }
 
     private PendingIntent temp(String zapiska){
@@ -245,20 +259,11 @@ public class MainActivity extends AppCompatActivity {
                 ttsManager.speak("Привет! Чем могу сегодня помочь?");
             }
 
-            @Override
-            public void onSpeakStart(String utteranceId) {
+            @Override public void onSpeakStart(String utteranceId) {}
 
-            }
+            @Override public void onSpeakDone(String utteranceId) {}
 
-            @Override
-            public void onSpeakDone(String utteranceId) {
-
-            }
-
-            @Override
-            public void onError(String utteranceId) {
-
-            }
+            @Override public void onError(String utteranceId) {}
         });
 
         preferencesManager = new PreferencesManager(this);
@@ -334,8 +339,6 @@ public class MainActivity extends AppCompatActivity {
 
 // настройка максимальной высоты
         bottomSheetBehavior.setPeekHeight(300);
-        Intent intent = new Intent(this, MainActivity2.class);
-        Intent intent7 = new Intent(this, CopilkaAndBalance.class);
 
 // настройка возможности скрыть элемент при свайпе вниз
         bottomSheetBehavior.setHideable(false);

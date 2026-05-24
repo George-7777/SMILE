@@ -4,23 +4,28 @@ import static com.example.smile.Constant.SOS_WORD;
 import static com.example.smile.Constant.WAKE_WORD;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.ActivityOptions;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
@@ -28,6 +33,7 @@ import androidx.core.content.ContextCompat;
 import com.example.smile.R;
 import com.example.smile.data.PreferencesManager;
 import com.example.smile.tts.TTSManager;
+import com.example.smile.ui.CallActivity;
 
 import org.json.JSONObject;
 import org.vosk.Model;
@@ -96,7 +102,9 @@ public class VoiceTriggerService extends Service {
 
         preferencesManager = new PreferencesManager(this);
         initVosk();
-        startForegroundService();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            startForegroundService();
+        }
         startListening();
     }
 
@@ -265,17 +273,42 @@ public class VoiceTriggerService extends Service {
     private void dialPhoneNumber(String phoneNumber) {
         Log.d(TAG, "Звонок...");
         try {
-            Intent intent = new Intent(Intent.ACTION_CALL);
-            intent.setData(Uri.parse("tel:" + phoneNumber));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Intent intent = new Intent(this, CallActivity.class);
+            intent.putExtra("phone_number", phoneNumber);
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                startActivity(intent);
+            ActivityOptions options = ActivityOptions.makeBasic();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                options.setPendingIntentBackgroundActivityStartMode(
+                        ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
             }
-            else {
-                Log.d(TAG, "Отсутствует разрешение");
-            }
+
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    this, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE,
+                    options.toBundle()
+            );
+
+            @SuppressLint("FullScreenIntentPolicy") Notification notification = new NotificationCompat.Builder(this, "sos_channel")
+                    .setContentTitle("ЭКСТРЕННЫЙ ВЫЗОВ")
+                    .setContentText("Совершается звонок родителям...")
+                    .setSmallIcon(R.drawable.baseline_mic_24)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setFullScreenIntent(pendingIntent, true)
+                    .setAutoCancel(true)
+                    .setCategory(NotificationCompat.CATEGORY_CALL)
+                    .build();
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            NotificationChannel channel = new NotificationChannel(
+                    "sos_channel",
+                    "SOS вызовы",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            manager.createNotificationChannel(channel);
+
+            manager.notify(999, notification);
+
         } catch (Exception e) {
             Log.e(TAG, "Ошибка звонка: " + e.getMessage());
         }
@@ -309,6 +342,7 @@ public class VoiceTriggerService extends Service {
         Log.d(TAG, "Прослушивание остановлено");
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
     private void startForegroundService() {
         NotificationChannel channel = new NotificationChannel(
                 "voice_assistant_channel",
@@ -320,13 +354,22 @@ public class VoiceTriggerService extends Service {
 
         Notification notification = new NotificationCompat.Builder(this, "voice_assistant_channel")
                 .setContentTitle("СМАЙЛИК")
-                .setContentText("Слушаю: \"" + WAKE_WORD + "\" или \"" + SOS_WORD + "\"")
+                .setContentText("Ожидание: \"СМАЙЛИК\" или \"СОС\"")
                 .setSmallIcon(R.drawable.baseline_mic_24)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .build();
 
-        startForeground(1, notification);
+        int serviceTypes = 0;
+        serviceTypes = ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+
+        try {
+            Log.d(TAG, "Получилось запустить foreground с типами");
+            startForeground(7, notification, serviceTypes);
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка при старте foreground сервиса с типами", e);
+            startForeground(7, notification);
+        }
     }
 
     @Override
