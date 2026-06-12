@@ -35,3 +35,4 @@ google-services.json
 
 # secret
 /src/main/java/com/example/smile/Secret.java
+/app/src/main/java/com/gvayt/smile/Secret.java
