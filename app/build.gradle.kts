@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.smile"
+    namespace = "com.gvayt.smile"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.smile"
+        applicationId = "com.gvayt.smile"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
