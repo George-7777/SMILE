@@ -1,13 +1,10 @@
 package com.gvayt.smile.ui;
 
-import static android.app.PendingIntent.FLAG_IMMUTABLE;
-
 import static com.gvayt.smile.Constant.WAKE_WORD;
 
 import android.Manifest;
 import android.app.Activity;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -43,14 +40,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.gvayt.smile.services.MyReceiver;
 import com.gvayt.smile.R;
 import com.gvayt.smile.services.VoiceTriggerService;
-import com.gvayt.smile.ai.AIProvider;
-import com.gvayt.smile.ai.GeminiProvider;
+import com.gvayt.smile.model.ai.AIProvider;
+import com.gvayt.smile.model.ai.GeminiProvider;
 import com.gvayt.smile.commands.CommandExecutor;
 import com.gvayt.smile.commands.commandsScripts.radio.RadioPlayer;
-import com.gvayt.smile.data.PreferencesManager;
+import com.gvayt.smile.model.PreferencesManager;
 import com.gvayt.smile.tts.TTSManager;
 import com.gvayt.smile.commands.commandsScripts.reminder.ReminderScheduler;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -59,21 +55,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+// TODO: перевести на MVP + DI
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 100;
 
     private BroadcastReceiver triggerReceiver;
-    private ArrayList<String> items;
     private ArrayAdapter<String> itemsAdapter;
-    private ArrayList<String> messages;
     private ArrayAdapter<String> messagesAdapter;
     private ListView listView;
-    private ListView listMessages;
-    private Spinner spinner;
-    private ImageButton sendCommand;
-    private ImageButton speechTotext;
     private EditText commandToSend;
     private TTSManager ttsManager;
     private AIProvider aiProvider;
@@ -86,6 +77,9 @@ public class MainActivity extends AppCompatActivity {
     private ReminderScheduler reminderScheduler;
 
 
+    /*
+    Запрашивает все нужные разрешения.
+     */
     private void checkPermissions() {
         String[] permissions = {
                 Manifest.permission.RECORD_AUDIO,
@@ -101,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (!permissionsNeeded.isEmpty()) {
             requestPermissions(
-                    permissionsNeeded.toArray(new String[0]),
+                    permissions,
                     PERMISSION_REQUEST_CODE
             );
         }
@@ -216,13 +210,6 @@ public class MainActivity extends AppCompatActivity {
         //stopVoiceTriggerService();
     }
 
-    private PendingIntent temp(String zapiska){
-        Intent notifyIntent = new Intent(this, MyReceiver.class);
-        notifyIntent.putExtra("name", zapiska);
-        return PendingIntent.getBroadcast
-                (this, 0, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -279,18 +266,18 @@ public class MainActivity extends AppCompatActivity {
 
         createSoundPool();
         // получение вью нижнего экрана
-        LinearLayout llBottomSheet = (LinearLayout) findViewById(R.id.bottom_sheet);
-        speechTotext = findViewById(R.id.imageButton);
+        LinearLayout llBottomSheet = findViewById(R.id.bottom_sheet);
+        ImageButton speechTotext = findViewById(R.id.imageButton);
         listView = findViewById(R.id.listCommands);
-        listMessages = findViewById(R.id.listChat);
-        messages = new ArrayList<>();
+        ListView listMessages = findViewById(R.id.listChat);
+        ArrayList<String> messages = new ArrayList<>();
         messagesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, messages);
-        items = new ArrayList<>();
+        ArrayList<String> items = new ArrayList<>();
         itemsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
         listView.setAdapter(itemsAdapter);
         listMessages.setAdapter(messagesAdapter);
         commandToSend = findViewById(R.id.editTextText3);
-        sendCommand = findViewById(R.id.imageButton5);
+        ImageButton sendCommand = findViewById(R.id.imageButton5);
         setUpListViewListener();
         messagesAdapter.add("Информация: Список команд можно открыть по кнопке в левом нижнем углу.");
         messagesAdapter.add("Нужную тебе команду можешь также выбрать прямиком из списка.");
@@ -300,40 +287,26 @@ public class MainActivity extends AppCompatActivity {
 
         messagesAdapter.notifyDataSetChanged();
 
-        speechTotext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                triggered();
-            }
-        });
-        sendCommand.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String command = commandToSend.getText().toString();
-                if (command.isEmpty()) return;
+        speechTotext.setOnClickListener(v -> triggered());
+        sendCommand.setOnClickListener(v -> {
+            String command = commandToSend.getText().toString();
+            if (command.isEmpty()) return;
 
-                messagesAdapter.add("Ты: " + command);
-                messagesAdapter.notifyDataSetChanged();
-                commandToSend.setText("");
+            messagesAdapter.add("Ты: " + command);
+            messagesAdapter.notifyDataSetChanged();
+            commandToSend.setText("");
 
-                commandExecutor.execute(command, new CommandExecutor.CommandCallback() {
-                    @Override public void onResult(String message) {}
-                    @Override public void onError(String error) {}
-                });
-            }
-
+            commandExecutor.execute(command, new CommandExecutor.CommandCallback() {
+                @Override public void onResult(String message) {}
+                @Override public void onError(String error) {}
+            });
         });
 
 // настройка поведения нижнего экрана
         BottomSheetBehavior<LinearLayout> bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
 
         ImageButton buttonExpand = findViewById(R.id.imageButton4);
-        buttonExpand.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            }
-        });
+        buttonExpand.setOnClickListener(v -> bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED));
 
 // настройка максимальной высоты
         bottomSheetBehavior.setPeekHeight(300);
@@ -341,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
 // настройка возможности скрыть элемент при свайпе вниз
         bottomSheetBehavior.setHideable(false);
 
-        spinner = findViewById(R.id.spinner);
+        Spinner spinner = findViewById(R.id.spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 this,
                 R.array.group_array,
@@ -419,7 +392,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected void createNewSoundPool() {
         AudioAttributes attributes = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_GAME)
+                .setUsage(AudioAttributes.USAGE_ASSISTANT)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build();
         new SoundPool.Builder()

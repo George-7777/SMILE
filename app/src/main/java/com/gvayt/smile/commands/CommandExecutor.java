@@ -9,10 +9,10 @@ import android.widget.ArrayAdapter;
 
 import com.gvayt.smile.commands.commandsScripts.radio.RadioPlayer;
 import com.gvayt.smile.commands.commandsScripts.reminder.ReminderData;
-import com.gvayt.smile.data.PreferencesManager;
+import com.gvayt.smile.model.PreferencesManager;
 import com.gvayt.smile.ui.commandsView.CopilkaAndBalance;
 import com.gvayt.smile.ui.commandsView.MainActivity2;
-import com.gvayt.smile.ai.AIProvider;
+import com.gvayt.smile.model.ai.AIProvider;
 import com.gvayt.smile.tts.TTSManager;
 import com.gvayt.smile.commands.commandsScripts.reminder.ReminderScheduler;
 

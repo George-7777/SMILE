@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/auth_title"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"/>
+
+    <TextView
+        android:id="@+id/tv_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"
+        android:textColor="@android:color/holo_red_dark"
+        android:visibility="gone"/>
+
+    <!-- поля для логина -->
+    <EditText
+        android:id="@+id/et_username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_login"
+        android:inputType="text"
+        android:minHeight="50dp"
+        android:layout_marginBottom="18dp"/>
+
+    <EditText
+        android:id="@+id/et_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="password"
+        android:minHeight="50dp"
+        android:hint="@string/hint_password"
+        android:inputType="textPassword"
+        android:layout_marginBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/radio_role"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="visible">
+
+        <RadioButton
+            android:layout_width="match_parent"
+            android:id="@+id/firstR"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/radio_btn_kid"
+            android:textSize="18sp" />
+        <RadioButton
+            android:layout_width="match_parent"
+            android:id="@+id/secondR"
+            android:layout_height="wrap_content"
+            android:text="@string/radio_btn_parent"
+            android:textSize="18sp"/>
+    </RadioGroup>
+
+    <!-- поля для регистрации для родителя (скрыты по умолчанию) -->
+    <EditText
+        android:id="@+id/et_fio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="name"
+        android:hint="@string/hint_fio"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"/>
+
+    <!-- кнопки -->
+    <Button
+        android:id="@+id/btn_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_button"
+        android:textSize="18sp"/>
+
+    <Button
+        android:id="@+id/btn_no_internet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_no_internet"
+        android:backgroundTint="@color/black"
+        android:textSize="18sp"/>
+
+    <!-- ссылка для переключения режима -->
+    <TextView
+        android:id="@+id/tv_switch_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/switch_to_register"
+        android:textColor="@android:color/holo_blue_dark"
+        android:layout_marginTop="16dp"/>
+
+    <!-- комментарий для родителей -->
+    <TextView
+        android:id="@+id/tv_comment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/comment_for_kids"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_red_light"
+        android:visibility="gone"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

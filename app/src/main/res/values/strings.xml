@@ -13,4 +13,24 @@
         <item>Для ребенка</item>
     </string-array>
     <string name="preference_file_key">SMILE_FACE_APP</string>
+    <string name="auth_title">Добро пожаловать!</string>
+    <string name="hint_login">Логин</string>
+    <string name="hint_password">Пароль</string>
+    <string name="hint_fio">ФИО</string>
+    <string name="login_button">Войти</string>
+    <string name="register_button">Зарегистрироваться</string>
+    <string name="switch_to_register">Нет аккаунта? Зарегистрироваться</string>
+    <string name="comment_for_kids">Регистрация для родителей. \n Если ты ребенок, попроси родителя зарегистрировать тебя в его личном кабинете.</string>
+    <string name="button_no_internet">Пользоваться без Интернета/Анонимно</string>
+    <string name="radio_btn_kid">Я ребенок</string>
+    <string name="radio_btn_parent">Я родитель</string>
+    <string name="login_failed">Неверный логин или пароль</string>
+    <string name="register_failed">Username занят другим пользователем</string>
+    <string name="server_error">Произошла ошибка. Попробуйте позже</string>
+    <string name="login_success">Успешный вход</string>
+    <string name="register_success">Успешная регистрация</string>
+    <string name="hint_login_email">Адрес почты</string>
+    <string name="auth_title_again">Добро пожаловать снова!</string>
+    <string name="network_error">Ошибка соединения</string>
+    <string name="switch_to_login">Уже есть аккаунт? Войти</string>
 </resources>

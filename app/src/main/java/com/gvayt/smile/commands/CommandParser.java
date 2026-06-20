@@ -2,6 +2,7 @@ package com.gvayt.smile.commands;
 
 import com.gvayt.smile.commands.commandsScripts.reminder.ReminderData;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,7 +48,7 @@ public class CommandParser {
         Matcher minutesMatcher = minutesPattern.matcher(lowerCommand);
         if (minutesMatcher.find()) {
             data.setType(ReminderData.ReminderType.MINUTES);
-            data.setMinutes(Integer.parseInt(minutesMatcher.group(1)));
+            data.setMinutes(Integer.parseInt(Objects.requireNonNull(minutesMatcher.group(1))));
             reminderText = extractReminderText(command, minutesMatcher.start());
             data.setMessage(reminderText);
             return data;
@@ -57,7 +58,7 @@ public class CommandParser {
         Matcher hoursMatcher = hoursPattern.matcher(lowerCommand);
         if (hoursMatcher.find()) {
             data.setType(ReminderData.ReminderType.HOURS);
-            data.setHours(Integer.parseInt(hoursMatcher.group(1)));
+            data.setHours(Integer.parseInt(Objects.requireNonNull(hoursMatcher.group(1))));
             reminderText = extractReminderText(command, hoursMatcher.start());
             data.setMessage(reminderText);
             return data;
@@ -67,8 +68,8 @@ public class CommandParser {
         Matcher timeMatcher = timePattern.matcher(lowerCommand);
         if (timeMatcher.find()) {
             data.setType(ReminderData.ReminderType.TIME_STRING);
-            data.setHour(Integer.parseInt(timeMatcher.group(1)));
-            data.setMinute(Integer.parseInt(timeMatcher.group(2)));
+            data.setHour(Integer.parseInt(Objects.requireNonNull(timeMatcher.group(1))));
+            data.setMinute(Integer.parseInt(Objects.requireNonNull(timeMatcher.group(2))));
             reminderText = extractReminderText(command, timeMatcher.start());
             data.setMessage(reminderText);
             return data;

@@ -31,7 +31,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.gvayt.smile.R;
-import com.gvayt.smile.data.PreferencesManager;
+import com.gvayt.smile.model.PreferencesManager;
 import com.gvayt.smile.tts.TTSManager;
 import com.gvayt.smile.ui.CallActivity;
 

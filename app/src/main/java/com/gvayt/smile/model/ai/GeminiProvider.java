@@ -1,4 +1,4 @@
-package com.gvayt.smile.ai;
+package com.gvayt.smile.model.ai;
 
 import android.content.Context;
 import android.os.Handler;

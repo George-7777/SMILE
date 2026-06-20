@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Set;
 
 // TTSManager.java
+// TODO: вынести в интерфейс
 public class TTSManager {
     private TextToSpeech textToSpeech;
     private Context context;

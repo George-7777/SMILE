@@ -21,7 +21,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.gvayt.smile.commands.commandsScripts.reminder.ReminderData;
-import com.gvayt.smile.data.PreferencesManager;
+import com.gvayt.smile.model.PreferencesManager;
 import com.gvayt.smile.R;
 import com.gvayt.smile.ui.MainActivity;
 import com.gvayt.smile.commands.commandsScripts.reminder.ReminderScheduler;
@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 
+// TODO: перевести на MVP
 public class MainActivity2 extends AppCompatActivity {
 
     private ArrayList<String> items;
@@ -55,24 +56,16 @@ public class MainActivity2 extends AppCompatActivity {
         listView = findViewById(R.id.ListView);
         button = findViewById(R.id.button);
 
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    addItem(v);
-                } catch (ParseException | IOException e) {
-                    throw new RuntimeException(e);
-                }
+        button.setOnClickListener(v -> {
+            try {
+                addItem(v);
+            } catch (ParseException | IOException e) {
+                throw new RuntimeException(e);
             }
         });
         buttonBack = findViewById(R.id.buttonBack);
         intent = new Intent(this, MainActivity.class);
-        buttonBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(intent);
-            }
-        });
+        buttonBack.setOnClickListener(v -> startActivity(intent));
         preferencesManager = new PreferencesManager(this);
         reminderScheduler = new ReminderScheduler(this);
 

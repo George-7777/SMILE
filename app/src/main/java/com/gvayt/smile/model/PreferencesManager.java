@@ -1,4 +1,4 @@
-package com.gvayt.smile.data;
+package com.gvayt.smile.model;
 
 
 import android.content.Context;
