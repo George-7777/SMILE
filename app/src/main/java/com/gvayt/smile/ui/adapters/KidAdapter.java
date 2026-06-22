@@ -8,7 +8,7 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.gvayt.smile.R;
-import com.gvayt.smile.model.network.dto.KidResponse;
+import com.gvayt.smile.model.network.dto.kid.KidResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,7 +120,7 @@ public class KidAdapter extends RecyclerView.Adapter<KidAdapter.ChildViewHolder>
 
         void bind(KidResponse child, OnChildClickListener listener) {
             tvChildName.setText(child.getFio());
-            tvChildUsername.setText(itemView.getContext().getString(R.string.template_username_kid, child.getUsername()));
+            tvChildUsername.setText(itemView.getContext().getString(R.string.template_username_kid, child.getLogin()));
             tvTasksCount.setText(itemView.getContext().getString(R.string.tasks_count, child.getTasks().size()));
 
             itemView.setOnClickListener(v -> {

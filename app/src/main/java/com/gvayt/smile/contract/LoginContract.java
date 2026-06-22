@@ -1,8 +1,9 @@
 package com.gvayt.smile.contract;
 
-import com.gvayt.smile.model.network.dto.KidResponse;
-import com.gvayt.smile.model.network.dto.ParentResponse;
-import com.gvayt.smile.model.network.dto.ParentRegisterRequest;
+import com.gvayt.smile.model.network.ModelCallback;
+import com.gvayt.smile.model.network.dto.kid.KidResponse;
+import com.gvayt.smile.model.network.dto.parent.ParentResponse;
+import com.gvayt.smile.model.network.dto.parent.ParentRegisterRequest;
 
 public interface LoginContract {
     interface View {
@@ -20,7 +21,7 @@ public interface LoginContract {
     }
     interface Presenter {
         void onButtonLoginClick(String login, String password, RoleUser role);
-        void onButtonRegisterClick(String email, String fio, String password);
+        void onButtonRegisterClick(String login, String fio, String password);
         void onButtonAnonClick();
         void onViewCreated();
         void onSwitchMode(boolean toLogin);
@@ -31,20 +32,11 @@ public interface LoginContract {
         void registerParent(ParentRegisterRequest request, ModelCallback<ParentResponse> callback);
         boolean isLoggedIn();
         RoleUser getRole();
-        String getToken();
         void saveSession(String username, String password, long userId, RoleUser role, String fio);
     }
-    interface ModelCallback<T> {
-        void onSuccess(T result);
-        void onError(LoginError error);
-    }
+
     enum RoleUser {
         KID,
         PARENT
-    }
-    enum LoginError {
-        SERVER,
-        CLIENT,
-        NETWORK
     }
 }

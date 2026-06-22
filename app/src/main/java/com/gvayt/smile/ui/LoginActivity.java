@@ -91,41 +91,41 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void showLoginSuccess() {
         errorText.setVisibility(GONE);
-        Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT);
+        Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showLoginFailed() {
         errorText.setVisibility(VISIBLE);
         errorText.setText(R.string.login_failed);
-        Toast.makeText(this, R.string.login_failed, Toast.LENGTH_SHORT);
+        Toast.makeText(this, R.string.login_failed, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showRegisterSuccess() {
         errorText.setVisibility(GONE);
-        Toast.makeText(this, R.string.register_success, Toast.LENGTH_SHORT);
+        Toast.makeText(this, R.string.register_success, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showRegisterFailed() {
         errorText.setVisibility(VISIBLE);
         errorText.setText(R.string.register_failed);
-        Toast.makeText(this, R.string.register_failed, Toast.LENGTH_SHORT);
+        Toast.makeText(this, R.string.register_failed, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showServerError() {
         errorText.setVisibility(VISIBLE);
         errorText.setText(R.string.server_error);
-        Toast.makeText(this, R.string.server_error, Toast.LENGTH_SHORT);
+        Toast.makeText(this, R.string.server_error, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void showNetworkError() {
         errorText.setVisibility(VISIBLE);
         errorText.setText(R.string.network_error);
-        Toast.makeText(this, R.string.network_error, Toast.LENGTH_SHORT);
+        Toast.makeText(this, R.string.network_error, Toast.LENGTH_SHORT).show();
     }
 
     @Override

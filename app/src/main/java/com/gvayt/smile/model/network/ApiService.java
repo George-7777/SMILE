@@ -1,8 +1,9 @@
 package com.gvayt.smile.model.network;
 
-import com.gvayt.smile.model.network.dto.KidResponse;
-import com.gvayt.smile.model.network.dto.ParentResponse;
-import com.gvayt.smile.model.network.dto.ParentRegisterRequest;
+import com.gvayt.smile.model.network.dto.kid.KidRegisterRequest;
+import com.gvayt.smile.model.network.dto.kid.KidResponse;
+import com.gvayt.smile.model.network.dto.parent.ParentResponse;
+import com.gvayt.smile.model.network.dto.parent.ParentRegisterRequest;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -19,4 +20,7 @@ public interface ApiService {
 
     @POST("api/auth/register/parent")
     Call<ParentResponse> registerParent(@Body ParentRegisterRequest request);
+
+    @POST("api/auth/register/kid")
+    Call<KidResponse> registerKid(@Header("Authorization") String credential, @Body KidRegisterRequest request);
 }

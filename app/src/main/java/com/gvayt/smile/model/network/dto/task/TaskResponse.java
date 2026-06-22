@@ -1,4 +1,4 @@
-package com.gvayt.smile.model.network.dto;
+package com.gvayt.smile.model.network.dto.task;
 
 import java.time.LocalTime;
 

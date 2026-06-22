@@ -1,4 +1,4 @@
-package com.gvayt.smile.model.network.dto;
+package com.gvayt.smile.model.network.dto.parent;
 
 public class ParentRegisterRequest {
     private String fio;

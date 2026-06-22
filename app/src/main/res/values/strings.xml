@@ -43,4 +43,6 @@
     <string name="template_count_tasks_kid">📋 %1$d задачи</string>
     <string name="error_text_parent">Нет соединения</string>
     <string name="button_logout_hint">Кнопка выхода</string>
+    <string name="register_kid">Регистрация ребенка</string>
+    <string name="register_kid_error">Такой username уже занят</string>
 </resources>

@@ -1,8 +1,9 @@
 package com.gvayt.smile.contract;
 
 
-import com.gvayt.smile.model.network.dto.KidResponse;
-import com.gvayt.smile.model.network.dto.ParentResponse;
+import com.gvayt.smile.model.network.ModelCallback;
+import com.gvayt.smile.model.network.dto.kid.KidResponse;
+import com.gvayt.smile.model.network.dto.parent.ParentResponse;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public interface ParentContract {
         void onButtonLogoutClick();
     }
     interface Model {
-        void getParentInfo(LoginContract.ModelCallback<ParentResponse> callback);
+        void getParentInfo(ModelCallback<ParentResponse> callback);
         void logout();
     }
 }

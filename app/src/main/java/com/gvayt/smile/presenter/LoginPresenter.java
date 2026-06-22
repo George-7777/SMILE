@@ -1,14 +1,11 @@
 package com.gvayt.smile.presenter;
 
-import android.content.Context;
-
 import com.gvayt.smile.contract.LoginContract;
-import com.gvayt.smile.model.LoginModel;
-import com.gvayt.smile.model.network.ApiService;
-import com.gvayt.smile.model.network.RetrofitClient;
-import com.gvayt.smile.model.network.dto.KidResponse;
-import com.gvayt.smile.model.network.dto.ParentResponse;
-import com.gvayt.smile.model.network.dto.ParentRegisterRequest;
+import com.gvayt.smile.model.network.ModelCallback;
+import com.gvayt.smile.model.network.TypeApiError;
+import com.gvayt.smile.model.network.dto.kid.KidResponse;
+import com.gvayt.smile.model.network.dto.parent.ParentResponse;
+import com.gvayt.smile.model.network.dto.parent.ParentRegisterRequest;
 
 
 public class LoginPresenter implements LoginContract.Presenter {
@@ -25,7 +22,7 @@ public class LoginPresenter implements LoginContract.Presenter {
     @Override
     public void onButtonLoginClick(String login, String password, LoginContract.RoleUser role) {
         if (role.equals(LoginContract.RoleUser.KID)) {
-            loginModel.loginKid(login, password, new LoginContract.ModelCallback<>() {
+            loginModel.loginKid(login, password, new ModelCallback<>() {
                 @Override
                 public void onSuccess(KidResponse result) {
                     loginView.showLoginSuccess();
@@ -33,10 +30,10 @@ public class LoginPresenter implements LoginContract.Presenter {
                 }
 
                 @Override
-                public void onError(LoginContract.LoginError error) {
-                    if (error.equals(LoginContract.LoginError.SERVER)) {
+                public void onError(TypeApiError error) {
+                    if (error.equals(TypeApiError.SERVER)) {
                         loginView.showServerError();
-                    } else if (error.equals(LoginContract.LoginError.CLIENT)) {
+                    } else if (error.equals(TypeApiError.CLIENT)) {
                         loginView.showLoginFailed();
                     } else {
                         loginView.showNetworkError();
@@ -45,7 +42,7 @@ public class LoginPresenter implements LoginContract.Presenter {
             });
         }
         else {
-            loginModel.loginParent(login, password, new LoginContract.ModelCallback<>() {
+            loginModel.loginParent(login, password, new ModelCallback<>() {
                 @Override
                 public void onSuccess(ParentResponse result) {
                     loginView.showLoginSuccess();
@@ -53,10 +50,10 @@ public class LoginPresenter implements LoginContract.Presenter {
                 }
 
                 @Override
-                public void onError(LoginContract.LoginError error) {
-                    if (error.equals(LoginContract.LoginError.SERVER)) {
+                public void onError(TypeApiError error) {
+                    if (error.equals(TypeApiError.SERVER)) {
                         loginView.showServerError();
-                    } else if (error.equals(LoginContract.LoginError.CLIENT)) {
+                    } else if (error.equals(TypeApiError.CLIENT)) {
                         loginView.showLoginFailed();
                     } else {
                         loginView.showNetworkError();
@@ -68,7 +65,7 @@ public class LoginPresenter implements LoginContract.Presenter {
 
     @Override
     public void onButtonRegisterClick(String email, String fio, String password) {
-        loginModel.registerParent(new ParentRegisterRequest(fio, email, password), new LoginContract.ModelCallback<>() {
+        loginModel.registerParent(new ParentRegisterRequest(fio, email, password), new ModelCallback<>() {
 
             @Override
             public void onSuccess(ParentResponse result) {
@@ -77,10 +74,10 @@ public class LoginPresenter implements LoginContract.Presenter {
             }
 
             @Override
-            public void onError(LoginContract.LoginError error) {
-                if (error.equals(LoginContract.LoginError.SERVER)) {
+            public void onError(TypeApiError error) {
+                if (error.equals(TypeApiError.SERVER)) {
                     loginView.showServerError();
-                } else if (error.equals(LoginContract.LoginError.CLIENT)) {
+                } else if (error.equals(TypeApiError.CLIENT)) {
                     loginView.showRegisterFailed();
                 } else {
                     loginView.showNetworkError();

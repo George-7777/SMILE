@@ -1,4 +1,6 @@
-package com.gvayt.smile.model.network.dto;
+package com.gvayt.smile.model.network.dto.parent;
+
+import com.gvayt.smile.model.network.dto.kid.KidResponse;
 
 import java.util.List;
 

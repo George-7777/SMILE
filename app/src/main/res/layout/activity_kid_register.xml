@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical"
+    android:gravity="top"
+    tools:context=".ui.KidRegisterActivity">
+
+    <ImageButton
+        android:id="@+id/btn_logout"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/button_logout_hint"
+        android:layout_gravity="start"
+        android:src="@drawable/baseline_logout_24" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/logout_text"
+        android:text="@string/logout"
+        android:textSize="18sp"
+        android:layout_marginBottom="64sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_gravity="center"
+        android:id="@+id/register_kid_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/register_kid"
+        android:textSize="28sp"
+        android:layout_marginBottom="32dp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tv_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"
+        android:textColor="@android:color/holo_red_dark"
+        android:visibility="gone"/>
+
+    <EditText
+        android:id="@+id/et_username"
+        android:layout_width="match_parent"
+        android:hint="@string/hint_login"
+        android:layout_height="60sp"
+        android:inputType="text"
+        android:minHeight="50dp"
+        android:layout_marginBottom="18dp"/>
+
+    <EditText
+        android:id="@+id/et_fio"
+        android:layout_width="match_parent"
+        android:layout_height="60sp"
+        android:autofillHints="name"
+        android:hint="@string/hint_fio"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/et_password"
+        android:layout_width="match_parent"
+        android:layout_height="60sp"
+        android:autofillHints="password"
+        android:minHeight="50dp"
+        android:hint="@string/hint_password"
+        android:inputType="textPassword"
+        android:layout_marginBottom="16dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_register"
+        android:backgroundTint="@color/blue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/register_button"
+        app:cornerRadius="8dp"
+        android:textSize="18sp"/>
+
+</LinearLayout>

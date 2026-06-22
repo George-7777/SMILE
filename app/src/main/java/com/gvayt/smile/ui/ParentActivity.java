@@ -20,7 +20,7 @@ import com.google.android.material.button.MaterialButton;
 import com.gvayt.smile.R;
 import com.gvayt.smile.contract.ParentContract;
 import com.gvayt.smile.di.ParentPresenterFactory;
-import com.gvayt.smile.model.network.dto.KidResponse;
+import com.gvayt.smile.model.network.dto.kid.KidResponse;
 import com.gvayt.smile.ui.adapters.KidAdapter;
 
 import java.util.ArrayList;
@@ -66,7 +66,7 @@ public class ParentActivity extends AppCompatActivity implements ParentContract.
         kidAdapter = new KidAdapter(kidsList, new KidAdapter.OnChildClickListener() {
             @Override
             public void onChildClick(KidResponse child) {
-                parentPresenter.onKidClick(child.getUsername());
+                parentPresenter.onKidClick(child.getLogin());
             }
 
             @Override
@@ -102,7 +102,9 @@ public class ParentActivity extends AppCompatActivity implements ParentContract.
     @Override
     public void showRegistrationDialog() {
         System.out.println("Регистрация ребенка...");
-        // регистрация ребенка
+        Intent intent = new Intent(this, KidRegisterActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
