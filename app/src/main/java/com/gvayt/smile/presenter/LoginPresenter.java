@@ -6,8 +6,8 @@ import com.gvayt.smile.contract.LoginContract;
 import com.gvayt.smile.model.LoginModel;
 import com.gvayt.smile.model.network.ApiService;
 import com.gvayt.smile.model.network.RetrofitClient;
-import com.gvayt.smile.model.network.dto.KidLoginResponse;
-import com.gvayt.smile.model.network.dto.ParentLoginResponse;
+import com.gvayt.smile.model.network.dto.KidResponse;
+import com.gvayt.smile.model.network.dto.ParentResponse;
 import com.gvayt.smile.model.network.dto.ParentRegisterRequest;
 
 
@@ -15,9 +15,9 @@ public class LoginPresenter implements LoginContract.Presenter {
     private final LoginContract.View loginView;
     private final LoginContract.Model loginModel;
 
-    public LoginPresenter(LoginContract.View loginView, Context context) {
+    public LoginPresenter(LoginContract.View loginView, LoginContract.Model loginModel) {
         this.loginView = loginView;
-        this.loginModel = new LoginModel(RetrofitClient.getInstance().create(ApiService.class), context);
+        this.loginModel = loginModel;
     }
 
     // =======================IMPL=======================
@@ -27,7 +27,7 @@ public class LoginPresenter implements LoginContract.Presenter {
         if (role.equals(LoginContract.RoleUser.KID)) {
             loginModel.loginKid(login, password, new LoginContract.ModelCallback<>() {
                 @Override
-                public void onSuccess(KidLoginResponse result) {
+                public void onSuccess(KidResponse result) {
                     loginView.showLoginSuccess();
                     loginView.redirectToKidActivity();
                 }
@@ -47,7 +47,7 @@ public class LoginPresenter implements LoginContract.Presenter {
         else {
             loginModel.loginParent(login, password, new LoginContract.ModelCallback<>() {
                 @Override
-                public void onSuccess(ParentLoginResponse result) {
+                public void onSuccess(ParentResponse result) {
                     loginView.showLoginSuccess();
                     loginView.redirectToParentActivity();
                 }
@@ -71,7 +71,7 @@ public class LoginPresenter implements LoginContract.Presenter {
         loginModel.registerParent(new ParentRegisterRequest(fio, email, password), new LoginContract.ModelCallback<>() {
 
             @Override
-            public void onSuccess(ParentLoginResponse result) {
+            public void onSuccess(ParentResponse result) {
                 loginView.showRegisterSuccess();
                 loginView.redirectToParentActivity();
             }

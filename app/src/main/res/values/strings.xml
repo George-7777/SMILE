@@ -33,4 +33,14 @@
     <string name="auth_title_again">Добро пожаловать снова!</string>
     <string name="network_error">Ошибка соединения</string>
     <string name="switch_to_login">Уже есть аккаунт? Войти</string>
+    <string name="template_welcome_parent">Здравствуйте, %1$s!</string>
+    <string name="your_kids_text">Ваши дети:</string>
+    <string name="add_kid">➕ Добавить ребёнка</string>
+    <string name="logout">Выйти</string>
+    <string name="tasks_count">📋 %1$d задачи</string>
+    <string name="template_name_kid">Имя ребёнка</string>
+    <string name="template_username_kid">\@%1$s</string>
+    <string name="template_count_tasks_kid">📋 %1$d задачи</string>
+    <string name="error_text_parent">Нет соединения</string>
+    <string name="button_logout_hint">Кнопка выхода</string>
 </resources>

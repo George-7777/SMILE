@@ -6,7 +6,7 @@ public class Constant {
     public static final String SOS_WORD = "спасите";
 
     // Prefs keys
-    public static final String PREF_NAME = "smile_prefs";
+    public static final String PREF_NAME = "smile_session_prefs";
     public static final String KEY_USERNAME = "username";
     public static final String KEY_PASSWORD = "password";
     public static final String KEY_TOKEN = "auth_token";
@@ -16,5 +16,5 @@ public class Constant {
     public static final String KEY_LOGGED_IN = "logged_in";
 
     // API
-    public static final String BASE_URL = "http://10.36.122.1:8080/";
+    public static final String BASE_URL = "http://10.54.107.138:8080/";
 }

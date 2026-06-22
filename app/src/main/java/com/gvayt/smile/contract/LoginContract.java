@@ -1,7 +1,7 @@
 package com.gvayt.smile.contract;
 
-import com.gvayt.smile.model.network.dto.KidLoginResponse;
-import com.gvayt.smile.model.network.dto.ParentLoginResponse;
+import com.gvayt.smile.model.network.dto.KidResponse;
+import com.gvayt.smile.model.network.dto.ParentResponse;
 import com.gvayt.smile.model.network.dto.ParentRegisterRequest;
 
 public interface LoginContract {
@@ -26,9 +26,9 @@ public interface LoginContract {
         void onSwitchMode(boolean toLogin);
     }
     interface Model {
-        void loginParent(String username, String password, ModelCallback<ParentLoginResponse> callback);
-        void loginKid(String username, String password, ModelCallback<KidLoginResponse> callback);
-        void registerParent(ParentRegisterRequest request, ModelCallback<ParentLoginResponse> callback);
+        void loginParent(String username, String password, ModelCallback<ParentResponse> callback);
+        void loginKid(String username, String password, ModelCallback<KidResponse> callback);
+        void registerParent(ParentRegisterRequest request, ModelCallback<ParentResponse> callback);
         boolean isLoggedIn();
         RoleUser getRole();
         String getToken();

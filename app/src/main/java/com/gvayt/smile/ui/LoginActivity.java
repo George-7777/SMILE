@@ -5,16 +5,13 @@ import static android.view.View.VISIBLE;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -22,7 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.gvayt.smile.R;
 import com.gvayt.smile.contract.LoginContract;
-import com.gvayt.smile.presenter.LoginPresenter;
+import com.gvayt.smile.di.LoginPresenterFactory;
 
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
     private enum State {
@@ -41,7 +38,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     private TextView commentForKids;
     private State currentState = State.LOGIN;
 
-    private LoginContract.Presenter loginPresenter;
+    private LoginContract.Presenter loginPresenter; // DepInj
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +62,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         switchLoginRegister = findViewById(R.id.tv_switch_mode);
         commentForKids = findViewById(R.id.btn_no_internet);
 
-        loginPresenter = new LoginPresenter(this, getApplicationContext());
+        loginPresenter = LoginPresenterFactory.create(this, this);
 
         loginPresenter.onViewCreated();
         btnLogin.setOnClickListener(view -> {
@@ -155,7 +152,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void redirectToParentActivity() {
-        // TODO: сделать ParentActivity
+        Intent intent = new Intent(this, ParentActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
