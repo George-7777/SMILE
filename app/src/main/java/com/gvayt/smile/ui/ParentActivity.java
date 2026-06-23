@@ -110,7 +110,9 @@ public class ParentActivity extends AppCompatActivity implements ParentContract.
     @Override
     public void showTasksDialog(String usernameKid) {
         System.out.println("Открываем задания у " + usernameKid);
-        // задания ребенка
+        Intent intent = new Intent(this, ParentTasksActivity.class).putExtra("LOGIN_KID", usernameKid);
+        startActivity(intent);
+        finish();
     }
 
     @Override

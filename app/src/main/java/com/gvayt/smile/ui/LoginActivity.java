@@ -132,6 +132,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     public void switchToRegisterMode() {
         currentState = State.REGISTER;
         welcomeText.setText(R.string.auth_title);
+        commentForKids.setVisibility(VISIBLE);
         etLogin.setHint(R.string.hint_login_email);
         etFio.setVisibility(VISIBLE);
         radioRole.setVisibility(GONE);
@@ -144,6 +145,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         currentState = State.LOGIN;
         welcomeText.setText(R.string.auth_title_again);
         etLogin.setHint(R.string.hint_login);
+        commentForKids.setVisibility(GONE);
         etFio.setVisibility(GONE);
         radioRole.setVisibility(VISIBLE);
         btnLogin.setText(R.string.login_button);

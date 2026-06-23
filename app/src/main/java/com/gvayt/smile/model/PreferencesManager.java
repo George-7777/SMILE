@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class PreferencesManager {
+    // LEGACY
     private static final String PREF_NAME = "smile_prefs";
 
     // ключи

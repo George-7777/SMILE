@@ -45,4 +45,18 @@
     <string name="button_logout_hint">Кнопка выхода</string>
     <string name="register_kid">Регистрация ребенка</string>
     <string name="register_kid_error">Такой username уже занят</string>
+    <string name="name_of_kid_tasks">Ребёнок: %1$s</string>
+    <string name="tasks_count_for_parent">Всего задач: %1$d</string>
+    <string name="add_task_button">➕ Добавить задачу</string>
+    <string name="comment_for_parent_task">Зажмите и удерживайте задачу, чтобы удалить её.</string>
+    <string name="delete_task_hint">Удалить задачу</string>
+    <string name="template_time_task">00:00</string>
+    <string name="template_name_task">Задача</string>
+    <string name="task_added">Задание добавлено</string>
+    <string name="task_deleted">Задание удалено</string>
+    <string name="fragment_title_new_task">Новая задача</string>
+    <string name="fragment_name_task_hint">Название задачи</string>
+    <string name="fragment_time_task_hint">Время (HH:MM)</string>
+    <string name="fragment_task_cancel">Отмена</string>
+    <string name="fragment_task_save">Сохранить</string>
 </resources>

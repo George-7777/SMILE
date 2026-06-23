@@ -32,6 +32,9 @@
         android:theme="@style/Theme.SMILE"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ui.ParentTasksActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.KidRegisterActivity"
             android:exported="false" />
         <activity
