@@ -60,7 +60,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         btnLogin = findViewById(R.id.btn_login);
         btnNoInternet = findViewById(R.id.btn_no_internet);
         switchLoginRegister = findViewById(R.id.tv_switch_mode);
-        commentForKids = findViewById(R.id.btn_no_internet);
+        commentForKids = findViewById(R.id.tv_comment);
 
         loginPresenter = LoginPresenterFactory.create(this, this);
 
