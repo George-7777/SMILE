@@ -61,7 +61,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
         void bind(TaskResponse task, OnTaskClickListener listener) {
             tvTaskText.setText(task.getText());
-            tvTaskTime.setText(task.getLocalTime().toString());
+            tvTaskTime.setText(task.getLocalTime());
 
             btnDelete.setOnClickListener(v -> {
                 if (listener != null) listener.onDeleteClick(task);

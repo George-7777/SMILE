@@ -1,13 +1,11 @@
 package com.gvayt.smile.model.network.dto.task;
 
-import java.time.LocalTime;
-
 public class TaskResponse {
     private long id;
     private String text;
-    private LocalTime localTime;
+    private String localTime;
 
-    public TaskResponse(long id, String text, LocalTime localTime) {
+    public TaskResponse(long id, String text, String localTime) {
         this.id = id;
         this.text = text;
         this.localTime = localTime;
@@ -30,11 +28,11 @@ public class TaskResponse {
         this.text = text;
     }
 
-    public LocalTime getLocalTime() {
+    public String getLocalTime() {
         return localTime;
     }
 
-    public void setLocalTime(LocalTime localTime) {
+    public void setLocalTime(String localTime) {
         this.localTime = localTime;
     }
 }

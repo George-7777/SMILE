@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
@@ -65,9 +66,8 @@ public class ParentTasksActivity extends AppCompatActivity implements ParentTask
 
         presenter.onViewCreate(getIntent().getStringExtra("LOGIN_KID"));
 
-        taskAdapter = new TaskAdapter(tasksList, task -> {
-            presenter.onDeleteTaskClick(task.getId());
-        });
+        tasksListUi.setLayoutManager(new LinearLayoutManager(this));
+        taskAdapter = new TaskAdapter(tasksList, task -> presenter.onDeleteTaskClick(task.getId()));
         tasksListUi.setAdapter(taskAdapter);
         exitButton.setOnClickListener(view -> presenter.onButtonExitClick());
         addTaskButton.setOnClickListener(view -> presenter.onAddTaskClick());
@@ -128,6 +128,6 @@ public class ParentTasksActivity extends AppCompatActivity implements ParentTask
 
     @Override
     public void onTaskAdded(String name, String time) {
-        presenter.confirmAddTask(new TaskRequest(name, LocalTime.parse(time)));
+        presenter.confirmAddTask(new TaskRequest(name, LocalTime.parse(time).toString()));
     }
 }

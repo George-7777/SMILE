@@ -10,6 +10,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
 import com.gvayt.smile.R;
 
+import java.time.LocalTime;
+
 public class AddTaskBottomSheetFragment extends BottomSheetDialogFragment {
 
     private EditText etTaskName;
@@ -40,7 +42,15 @@ public class AddTaskBottomSheetFragment extends BottomSheetDialogFragment {
             String name = etTaskName.getText().toString().trim();
             String time = etTaskTime.getText().toString().trim();
 
-            if (name.isEmpty() || time.isEmpty()) {
+            boolean checkTime = true;
+
+            try {
+                LocalTime.parse(time);
+            } catch (Exception e) {
+                checkTime = false;
+            }
+
+            if (name.isEmpty() || time.isEmpty() || !checkTime) {
                 etTaskName.setError("Введите название");
                 etTaskTime.setError("Введите время");
                 return;

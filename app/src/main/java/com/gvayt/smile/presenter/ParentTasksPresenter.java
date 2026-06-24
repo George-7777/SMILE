@@ -62,6 +62,7 @@ public class ParentTasksPresenter implements ParentTasksContract.Presenter {
             @Override
             public void onSuccess(Void result) {
                 view.successDeleteTask();
+                onViewCreate(kidLogin);
             }
 
             @Override
@@ -77,6 +78,7 @@ public class ParentTasksPresenter implements ParentTasksContract.Presenter {
             @Override
             public void onSuccess(Void result) {
                 view.successAddTask();
+                onViewCreate(kidLogin);
             }
 
             @Override

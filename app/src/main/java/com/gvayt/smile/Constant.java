@@ -16,5 +16,5 @@ public class Constant {
     public static final String KEY_LOGGED_IN = "logged_in";
 
     // API
-    public static final String BASE_URL = "http://10.179.29.218:8080/";
+    public static final String BASE_URL = "http://10.36.122.2:8080/";
 }

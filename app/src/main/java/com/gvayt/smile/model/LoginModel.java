@@ -47,6 +47,7 @@ public class LoginModel implements LoginContract.Model {
                 System.out.println(response);
                 System.out.println(response.code());
                 if (response.isSuccessful()) {
+                    System.out.println("успешно залогинились");
                     callback.onSuccess(response.body());
                     saveSession(username, password, response.body().getId(), LoginContract.RoleUser.PARENT, response.body().getFio());
                 }
@@ -54,12 +55,14 @@ public class LoginModel implements LoginContract.Model {
                     callback.onError(TypeApiError.CLIENT);
                 }
                 else {
+                    System.out.println("не успешно залогинились");
                     callback.onError(TypeApiError.SERVER);
                 }
             }
 
             @Override
             public void onFailure(Call<ParentResponse> call, Throwable t) {
+                System.out.println("не успешно залогинились (сетевые неполадки)" + t.getMessage());
                 callback.onError(TypeApiError.NETWORK);
             }
         });

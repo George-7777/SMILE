@@ -58,6 +58,7 @@ public class ParentTasksModel implements ParentTasksContract.Model {
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
+                System.out.println(t.getMessage());
                 callback.onError(TypeApiError.NETWORK);
             }
         });
@@ -78,6 +79,7 @@ public class ParentTasksModel implements ParentTasksContract.Model {
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 callback.onError(TypeApiError.NETWORK);
+                System.out.println(t.getMessage());
             }
         });
     }

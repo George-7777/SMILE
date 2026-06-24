@@ -4,9 +4,9 @@ import java.time.LocalTime;
 
 public class TaskRequest {
     private String text;
-    private LocalTime localTime;
+    private String localTime;
 
-    public TaskRequest(String text, LocalTime localTime) {
+    public TaskRequest(String text, String localTime) {
         this.text = text;
         this.localTime = localTime;
     }
@@ -20,11 +20,11 @@ public class TaskRequest {
         this.text = text;
     }
 
-    public LocalTime getLocalTime() {
+    public String getLocalTime() {
         return localTime;
     }
 
-    public void setLocalTime(LocalTime localTime) {
+    public void setLocalTime(String localTime) {
         this.localTime = localTime;
     }
 }
