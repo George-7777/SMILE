@@ -1,4 +1,4 @@
-package com.gvayt.smile.tts;
+package com.gvayt.smile.model.tts;
 
 import android.content.Context;
 import android.speech.tts.TextToSpeech;
@@ -11,12 +11,11 @@ import com.gvayt.smile.services.VoiceTriggerService;
 import java.util.Locale;
 import java.util.Set;
 
-// TTSManager.java
-// TODO: вынести в интерфейс
-public class TTSManager {
+public class TTSManagerDefault implements TTSManager {
     private TextToSpeech textToSpeech;
     private Context context;
     private TTSListener listener;
+    private Locale language;
 
     public interface TTSListener {
         void onInit();
@@ -25,16 +24,17 @@ public class TTSManager {
         void onError(String utteranceId);
     }
 
-    public TTSManager(Context context, TTSListener listener) {
+    public TTSManagerDefault(Context context, TTSListener listener, Locale lang) {
         this.context = context;
         this.listener = listener;
-        initTTS();
+        this.language = lang;
+        initTTS(lang);
     }
 
-    private void initTTS() {
+    private void initTTS(Locale lang) {
         textToSpeech = new TextToSpeech(context, status -> {
             if (status != TextToSpeech.ERROR) {
-                textToSpeech.setLanguage(new Locale("RU"));
+                textToSpeech.setLanguage(lang);
                 setupVoice();
                 textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override
@@ -67,18 +67,16 @@ public class TTSManager {
 
         // Вывести все доступные голоса для отладки
         for (Voice voice : voices) {
-            if(voice.getName().contains("ru")) {
+            if(voice.getName().contains(language.getLanguage().toLowerCase())) {
                 Log.d("TTS Voice", "Name: " + voice.getName() +
                         ", Locale: " + voice.getLocale() +
                         ", Features: " + voice.getFeatures());
             }
         }
 
-        // Выбрать голос по имени или характеристикам
         Voice selectedVoice = null;
         for (Voice voice : voices) {
-            // Пример выбора по различным критериям
-            if (voice.getName().contains("ru")) {
+            if (voice.getName().contains(language.getLanguage().toLowerCase())) {
                 System.out.println(voice.getLocale().getCountry());
                 selectedVoice = voice;
                 break;
@@ -97,6 +95,11 @@ public class TTSManager {
 
     public void speak(String text) {
         speak(text, "some id");
+    }
+
+    @Override
+    public void setLocale(Locale locale) {
+        language = locale;
     }
 
     public void shutdown() {

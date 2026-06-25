@@ -14,6 +14,7 @@ public class Constant {
     public static final String KEY_ROLE = "role";
     public static final String KEY_FIO = "fio";
     public static final String KEY_LOGGED_IN = "logged_in";
+    public static final String KEY_SOS_NUMBER = "sos_number";
 
     // API
     public static final String BASE_URL = "http://10.36.122.2:8080/";

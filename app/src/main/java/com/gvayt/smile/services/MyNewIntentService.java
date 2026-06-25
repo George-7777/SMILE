@@ -13,8 +13,11 @@ import androidx.annotation.RequiresPermission;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.gvayt.smile.R;
-import com.gvayt.smile.tts.TTSManager;
+import com.gvayt.smile.model.tts.TTSManager;
+import com.gvayt.smile.model.tts.TTSManagerDefault;
 import com.gvayt.smile.ui.MainActivity;
+
+import java.util.Locale;
 
 public class MyNewIntentService extends IntentService {
     private static final int NOTIFICATION_ID = 3;
@@ -49,7 +52,7 @@ public class MyNewIntentService extends IntentService {
 
         managerCompat.notify(NOTIFICATION_ID, notificationCompat);
 
-        ttsManager = new TTSManager(getApplicationContext(), new TTSManager.TTSListener() {
+        ttsManager = new TTSManagerDefault(getApplicationContext(), new TTSManagerDefault.TTSListener() {
             @Override
             public void onInit() {
                 ttsManager.speak("Напоминаю " + name);
@@ -58,7 +61,7 @@ public class MyNewIntentService extends IntentService {
             @Override public void onSpeakStart(String utteranceId) {}
             @Override public void onSpeakDone(String utteranceId) {}
             @Override public void onError(String utteranceId) {}
-        });
+        }, Locale.forLanguageTag("ru"));
 
     }
 }

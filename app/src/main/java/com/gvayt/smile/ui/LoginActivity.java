@@ -162,13 +162,16 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void redirectToKidActivity() {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("ANON_MODE", false);
         startActivity(intent);
         finish();
     }
 
     @Override
     public void redirectToAnonKid() {
-        // Пока-что переход к авторизованному ребенку и анонимному никак не отличается
-        redirectToKidActivity();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("ANON_MODE", true);
+        startActivity(intent);
+        finish();
     }
 }

@@ -12,9 +12,11 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 
 public class RadioPlayer {
     private static final String TAG = "RadioPlayer";
-    private static final String RADIO_URL = "https://rusradio.hostingradio.ru/rusradio128.mp3";
+    private static final String DEFAULT_RADIO_URL = "https://rusradio.hostingradio.ru/rusradio128.mp3";
+    private String radio_url;
 
     private ExoPlayer player;
+    private static RadioPlayer instance;
     private Context context;
     private RadioListener listener;
     private boolean isPlaying = false;
@@ -26,15 +28,30 @@ public class RadioPlayer {
         void onLoading(boolean isLoading);
     }
 
-    public RadioPlayer(Context context) {
+    public RadioPlayer(Context context, String string) {
         this.context = context.getApplicationContext(); // Используем application context
+        this.radio_url = string;
+        if (string.isEmpty()) {
+            this.radio_url = DEFAULT_RADIO_URL;
+        }
         initPlayer();
     }
 
-    public RadioPlayer(Context context, RadioListener listener) {
+    public RadioPlayer(Context context, RadioListener listener, String string) {
         this.context = context.getApplicationContext();
         this.listener = listener;
+        this.radio_url = string;
+        if (string.isEmpty()) {
+            this.radio_url = DEFAULT_RADIO_URL;
+        }
         initPlayer();
+    }
+
+    public static synchronized RadioPlayer getInstance(Context context, String radio_url) {
+        if (instance == null) {
+            instance = new RadioPlayer(context, radio_url);
+        }
+        return instance;
     }
 
     @OptIn(markerClass = UnstableApi.class)
@@ -51,7 +68,7 @@ public class RadioPlayer {
                     .setTrackSelector(trackSelector)
                     .build();
 
-            MediaItem mediaItem = MediaItem.fromUri(RADIO_URL);
+            MediaItem mediaItem = MediaItem.fromUri(radio_url);
             player.setMediaItem(mediaItem);
             player.prepare();
 
@@ -157,5 +174,12 @@ public class RadioPlayer {
 
     public void setListener(RadioListener listener) {
         this.listener = listener;
+    }
+    public void setRadio_url(String radio_url) {
+        stop();
+        this.radio_url = radio_url;
+        MediaItem mediaItem = MediaItem.fromUri(radio_url);
+        player.setMediaItem(mediaItem);
+        play();
     }
 }

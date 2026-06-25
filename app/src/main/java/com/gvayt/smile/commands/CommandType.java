@@ -1,6 +1,7 @@
 package com.gvayt.smile.commands;
 
 public enum CommandType {
+    // LEGACY
     SHOW_TASKS,
     ENABLE_NOTIFICATIONS,
     DISABLE_NOTIFICATIONS,

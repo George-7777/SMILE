@@ -3,6 +3,7 @@ package com.gvayt.smile.ui;
 import static com.gvayt.smile.Constant.WAKE_WORD;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -15,11 +16,8 @@ import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -34,30 +32,24 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.gvayt.smile.R;
+import com.gvayt.smile.contract.MainContract;
+import com.gvayt.smile.di.MainPresenterFactory;
+import com.gvayt.smile.model.tts.TTSManager;
 import com.gvayt.smile.services.VoiceTriggerService;
-import com.gvayt.smile.model.ai.AIProvider;
-import com.gvayt.smile.model.ai.GeminiProvider;
-import com.gvayt.smile.commands.CommandExecutor;
-import com.gvayt.smile.commands.commandsScripts.radio.RadioPlayer;
-import com.gvayt.smile.model.PreferencesManager;
-import com.gvayt.smile.tts.TTSManager;
-import com.gvayt.smile.commands.commandsScripts.reminder.ReminderScheduler;
+import com.gvayt.smile.model.tts.TTSManagerDefault;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-// TODO: перевести на MVP + DI
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainContract.View {
 
     private static final int PERMISSION_REQUEST_CODE = 100;
 
@@ -67,24 +59,16 @@ public class MainActivity extends AppCompatActivity {
     private ListView listView;
     private EditText commandToSend;
     private TTSManager ttsManager;
-    private AIProvider aiProvider;
     private static final int SPEECH_REQUEST_CODE = 77712345;
-    private CommandExecutor commandExecutor;
+    private MainContract.Presenter presenter;
 
-    private Intent recognizerIntent;
-    private PreferencesManager preferencesManager;
-    private RadioPlayer radioPlayer;
-    private ReminderScheduler reminderScheduler;
+    // ЗАПРОС РАЗРЕШЕНИЙ
 
-
-    /*
-    Запрашивает все нужные разрешения.
+    /**
+    * Запрашивает все нужные разрешения.
      */
-    private void checkPermissions() {
-        String[] permissions = {
-                Manifest.permission.RECORD_AUDIO,
-                Manifest.permission.FOREGROUND_SERVICE
-        };
+    public void checkPermissions() {
+        String[] permissions = getPermissions();
 
         List<String> permissionsNeeded = new ArrayList<>();
         for (String permission : permissions) {
@@ -111,6 +95,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private static String[] getPermissions() {
+        String[] permissions;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            permissions = new String[]{
+                    Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.FOREGROUND_SERVICE,
+                    Manifest.permission.CALL_PHONE
+            };
+        }
+        else {
+            permissions = new String[]{
+                    Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.CALL_PHONE
+            };
+        }
+        return permissions;
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -133,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Регистрация сервиса распознования речи
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private void registerTriggerReceiver() {
         triggerReceiver = new BroadcastReceiver() {
             @Override
@@ -141,55 +145,32 @@ public class MainActivity extends AppCompatActivity {
                     String spokenText = intent.getStringExtra(
                             VoiceTriggerService.EXTRA_TRIGGER_PHRASE
                     );
-                    long timestamp = intent.getLongExtra("timestamp", 0);
-                    Log.d("test", "registerTriggerReceiver");
                     if (Objects.equals(spokenText, WAKE_WORD))
-                        respondToTrigger();
+                        presenter.onWakeWordDetected();
                 }
             }
         };
 
         IntentFilter filter = new IntentFilter(VoiceTriggerService.ACTION_TRIGGER_DETECTED);
 
-        registerReceiver(triggerReceiver, filter, RECEIVER_EXPORTED);
-    }
-
-
-
-    private void respondToTrigger() {
-        if (ttsManager != null) {
-            String response = "я тебя слушаю";
-            Log.d("test", "respondToTrigger");
-
-            ttsManager.speak(response);
-
-            //stopVoiceTriggerService();
-            new Handler(Looper.getMainLooper()).postDelayed(this::triggered, 2000);
-
-        }
-    }
-    private void triggered(){
-        Intent intentSpeech = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intentSpeech.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intentSpeech.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intentSpeech.putExtra(RecognizerIntent.EXTRA_PROMPT, "Скажите команду");
-
-        try {
-            startActivityForResult(intentSpeech, SPEECH_REQUEST_CODE);
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "Произошла ошибка при распозновании", Toast.LENGTH_SHORT).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(triggerReceiver, filter, RECEIVER_EXPORTED);
+        } else {
+            registerReceiver(triggerReceiver, filter);
         }
     }
 
-    private void startVoiceTriggerService() {
+    public void startVoiceTriggerService() {
+        registerTriggerReceiver();
         VoiceTriggerService.startService(this);
         Toast.makeText(this, "Служба запущена", Toast.LENGTH_SHORT).show();
     }
 
-    private void stopVoiceTriggerService() {
+    public void stopVoiceTriggerService() {
         VoiceTriggerService.stopService(this);
         Toast.makeText(this, "Служба остановлена", Toast.LENGTH_SHORT).show();
     }
+    // Жизненный цикл активити
 
     @Override
     protected void onDestroy() {
@@ -203,9 +184,6 @@ public class MainActivity extends AppCompatActivity {
         // Останавливаем TTS
         if (ttsManager != null) {
             ttsManager.shutdown();
-        }
-        if (radioPlayer != null) {
-            radioPlayer.release();
         }
         //stopVoiceTriggerService();
     }
@@ -221,55 +199,13 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        aiProvider = new GeminiProvider(this);
-        recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ru-RU");
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
-        // регистрация BroadcastReceiver
-        registerTriggerReceiver();
+        createNewSoundPool();
 
-        // проверка разрешений
-        checkPermissions();
-        System.out.println("print");
-        startVoiceTriggerService();
-
-
-        ttsManager = new TTSManager(this, new TTSManager.TTSListener() {
-            @Override
-            public void onInit() {
-                ttsManager.speak("Привет! Чем могу сегодня помочь?");
-            }
-
-            @Override public void onSpeakStart(String utteranceId) {}
-
-            @Override public void onSpeakDone(String utteranceId) {}
-
-            @Override public void onError(String utteranceId) {}
-        });
-
-        preferencesManager = new PreferencesManager(this);
-        radioPlayer = new RadioPlayer(this);
-        aiProvider = new GeminiProvider(this);
-        int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE);
-
-        if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-            System.out.println("okk. SOS");
-        } else {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CALL_PHONE}, 123);
-        }
-        // инициализация TTSManager
-
-
-        createSoundPool();
         // получение вью нижнего экрана
         LinearLayout llBottomSheet = findViewById(R.id.bottom_sheet);
-        ImageButton speechTotext = findViewById(R.id.imageButton);
-        listView = findViewById(R.id.listCommands);
+        ImageButton speechToText = findViewById(R.id.imageButton);
         ListView listMessages = findViewById(R.id.listChat);
+        listView = findViewById(R.id.listCommands);
         ArrayList<String> messages = new ArrayList<>();
         messagesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, messages);
         ArrayList<String> items = new ArrayList<>();
@@ -279,27 +215,12 @@ public class MainActivity extends AppCompatActivity {
         commandToSend = findViewById(R.id.editTextText3);
         ImageButton sendCommand = findViewById(R.id.imageButton5);
         setUpListViewListener();
-        messagesAdapter.add("Информация: Список команд можно открыть по кнопке в левом нижнем углу.");
-        messagesAdapter.add("Нужную тебе команду можешь также выбрать прямиком из списка.");
-        messagesAdapter.add("Просто поговорить с помощником можно голосом нажав на микрофон или в окошко сверху микрофона и нажав кнопку снизу справа.");
-        messagesAdapter.add("СМАЙЛИК: Привет! Чем могу сегодня помочь?");
 
-
-        messagesAdapter.notifyDataSetChanged();
-
-        speechTotext.setOnClickListener(v -> triggered());
+        speechToText.setOnClickListener(v -> presenter.onVoiceButtonClicked());
         sendCommand.setOnClickListener(v -> {
             String command = commandToSend.getText().toString();
             if (command.isEmpty()) return;
-
-            messagesAdapter.add("Ты: " + command);
-            messagesAdapter.notifyDataSetChanged();
-            commandToSend.setText("");
-
-            commandExecutor.execute(command, new CommandExecutor.CommandCallback() {
-                @Override public void onResult(String message) {}
-                @Override public void onError(String error) {}
-            });
+            presenter.onCommandEntered(command);
         });
 
 // настройка поведения нижнего экрана
@@ -324,68 +245,38 @@ public class MainActivity extends AppCompatActivity {
         spinner.setAdapter(adapter);
 // настройка колбэков при изменениях
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-
-            }
+            @Override public void onStateChanged(@NonNull View bottomSheet, int newState) {}
+            @Override public void onSlide(@NonNull View bottomSheet, float slideOffset) {}
         });
         class SpinnerActivity extends Activity implements AdapterView.OnItemSelectedListener {
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int pos, long id) {
-                if (pos == 0) {
-                    System.out.println("ok");
-                    itemsAdapter.clear();
-                    itemsAdapter.add("Список задач");
-                    itemsAdapter.add("Включить уведомления");
-                    itemsAdapter.add("Выключить уведомления");
-                    itemsAdapter.notifyDataSetChanged();
-                    //textHelp.setText("1. Список дел/расписание DONE\n 2. Включить уведомления DONE\n 3. Отключить уведомления DONE");
-                } else if (pos == 1) {
-                    itemsAdapter.clear();
-                    itemsAdapter.add("Разговор с ИИ");
-
-                    itemsAdapter.notifyDataSetChanged();
-                    //textHelp.setText("1. Объяснение от ИИ \n 2. Калькулятор \n 3. Таблица Менделеева \n 4. Добавить свою заметку");
-                } else if (pos == 2) {
-                    itemsAdapter.clear();
-                    itemsAdapter.add("Добавить сос-номер");
-
-                    itemsAdapter.notifyDataSetChanged();
-                    //textHelp.setText("1. Защита от продажи карты/Информация о мошеннических схемах \n 2. Оповещения о подозрительных переводах \n 3. Включить усиленную защиту от подозрительных переводов");
-                } else if (pos == 3) {
-                    itemsAdapter.clear();
-                    itemsAdapter.add("Включи радио");
-                    itemsAdapter.add("Выключи радио");
-                    itemsAdapter.notifyDataSetChanged();
-                    //textHelp.setText("1. Режим 'Разговоров' \n 2. Радио \n 3. Быстрые инструменты");
-                }
+                presenter.onSpinnerCategorySelected(pos);
             }
 
             public void onNothingSelected(AdapterView<?> parent) {}
         }
         spinner.setOnItemSelectedListener(new SpinnerActivity());
 
-        reminderScheduler = new ReminderScheduler(this);
+        // init tts and presenter
 
-        commandExecutor = new CommandExecutor(
-                this, ttsManager, preferencesManager, radioPlayer, aiProvider,
-                messagesAdapter, reminderScheduler
-        );
+        presenter = MainPresenterFactory.create(this, this);
+        presenter.onViewCreate(getIntent().getBooleanExtra("ANON_MODE", true));
+
+        ttsManager = new TTSManagerDefault(this, new TTSManagerDefault.TTSListener() {
+            @Override public void onInit() { presenter.onTTSInit(); }
+            @Override public void onSpeakStart(String utteranceId) {}
+            @Override public void onSpeakDone(String utteranceId) {}
+            @Override public void onError(String utteranceId) {}
+        }, Locale.forLanguageTag("ru"));
     }
+    // Вспомогательные методы
 
     private void setUpListViewListener() {
         listView.setOnItemClickListener((parent, view, position, id) -> {
             String selectedCommand = itemsAdapter.getItem(position);
             if (selectedCommand != null && !selectedCommand.isEmpty()) {
-                commandExecutor.execute(selectedCommand, new CommandExecutor.CommandCallback() {
-                    @Override public void onResult(String message) {}
-                    @Override public void onError(String error) {}
-                });
+                presenter.onCommandEntered(selectedCommand);
             }
         });
     }
@@ -400,10 +291,6 @@ public class MainActivity extends AppCompatActivity {
                 .build();
     }
 
-    protected void createSoundPool() {
-        createNewSoundPool();
-    }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -413,17 +300,89 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             if (result != null && !result.isEmpty()) {
                 String command = result.get(0);
-                commandToSend.setText(command);
-
-                messagesAdapter.add("Ты: " + command);
-                messagesAdapter.notifyDataSetChanged();
-
-                commandExecutor.execute(command, new CommandExecutor.CommandCallback() {
-                    @Override public void onResult(String message) {}
-
-                    @Override public void onError(String error) {}
-                });
+                presenter.onCommandEntered(command);
             }
         }
+    }
+    // IMPL
+
+    @Override
+    public void showServerError() {
+        Toast.makeText(this, R.string.server_error, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void showNetworkError() {
+        Toast.makeText(this, R.string.network_error, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void showAnonMode() {
+        addDialog(R.string.anon_mode, MainContract.DialogRole.SYSTEM);
+    }
+
+    @Override
+    public void addDialog(int text, MainContract.DialogRole author) {
+        String role = "";
+        switch (author) {
+            case USER:
+                role = getString(R.string.dialog_you);
+                break;
+            case SMILE:
+                role = getString(R.string.dialog_smile);
+                ttsManager.speak(getString(text));
+                break;
+            case SYSTEM:
+                role = "";
+                break;
+        }
+        messagesAdapter.add(role + getString(text));
+        messagesAdapter.notifyDataSetChanged();
+    }
+    @Override
+    public void addDialog(String text, MainContract.DialogRole author) {
+        String role = "";
+        switch (author) {
+            case USER:
+                role = getString(R.string.dialog_you);
+                break;
+            case SMILE:
+                role = getString(R.string.dialog_smile);
+                ttsManager.speak(text);
+                break;
+            case SYSTEM:
+                role = "";
+                break;
+        }
+        messagesAdapter.add(role + text);
+        messagesAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void showCommands(List<Integer> commands) {
+        itemsAdapter.clear();
+        itemsAdapter.addAll(commands.stream().map(this::getString).collect(Collectors.toList()));
+        itemsAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void startVoiceRecognition() {
+        Intent intentSpeech = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intentSpeech.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intentSpeech.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intentSpeech.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.intent_speech_comment));
+
+        try {
+            startActivityForResult(intentSpeech, SPEECH_REQUEST_CODE);
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), R.string.intent_speech_error, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void logout() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

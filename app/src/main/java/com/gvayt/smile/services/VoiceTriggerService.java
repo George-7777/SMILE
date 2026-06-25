@@ -30,9 +30,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
+import com.gvayt.smile.Constant;
 import com.gvayt.smile.R;
-import com.gvayt.smile.model.PreferencesManager;
-import com.gvayt.smile.tts.TTSManager;
+import com.gvayt.smile.model.local.LocalStorage;
+import com.gvayt.smile.model.local.SharedPrefStorage;
+import com.gvayt.smile.model.tts.TTSManagerDefault;
 import com.gvayt.smile.ui.CallActivity;
 
 import org.json.JSONObject;
@@ -64,9 +66,9 @@ public class VoiceTriggerService extends Service {
     public static final String MODEL_NAME_RUS = "vosk-model-small-ru-0.22";
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private PreferencesManager preferencesManager;
+    private LocalStorage preferencesManager;
     private static boolean isSpeaking;
-    public static final TTSManager.TTSListener ttsStateListener = new TTSManager.TTSListener() {
+    public static final TTSManagerDefault.TTSListener ttsStateListener = new TTSManagerDefault.TTSListener() {
         @Override
         public void onInit() {
 
@@ -100,7 +102,7 @@ public class VoiceTriggerService extends Service {
             return;
         }
 
-        preferencesManager = new PreferencesManager(this);
+        preferencesManager = new SharedPrefStorage(this);
         initVosk();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             startForegroundService();
@@ -256,7 +258,7 @@ public class VoiceTriggerService extends Service {
         Log.d(TAG, "SOS detected!");
         stopListening();
 
-        String phoneNumber = preferencesManager.getSosNumber();
+        String phoneNumber = preferencesManager.getString(Constant.KEY_SOS_NUMBER, "");
         if (phoneNumber != null && !phoneNumber.isEmpty()) {
             dialPhoneNumber(phoneNumber);
         }
