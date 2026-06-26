@@ -5,7 +5,7 @@ import android.content.Intent;
 
 import com.gvayt.smile.R;
 import com.gvayt.smile.commands.VoiceCommand;
-import com.gvayt.smile.ui.commandsView.MainActivity2;
+import com.gvayt.smile.ui.commandsView.TaskActivity;
 
 public class ShowTasksCommand implements VoiceCommand {
     private final Context context;
@@ -21,6 +21,6 @@ public class ShowTasksCommand implements VoiceCommand {
 
     @Override
     public void execute(String voiceRequest) {
-        context.startActivity(new Intent(context, MainActivity2.class));
+        context.startActivity(new Intent(context, TaskActivity.class));
     }
 }

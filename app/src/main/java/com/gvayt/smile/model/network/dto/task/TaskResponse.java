@@ -1,6 +1,8 @@
 package com.gvayt.smile.model.network.dto.task;
 
-public class TaskResponse {
+import java.io.Serializable;
+
+public class TaskResponse implements Serializable {
     private long id;
     private String text;
     private String localTime;

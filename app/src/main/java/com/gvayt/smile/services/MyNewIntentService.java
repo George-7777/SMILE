@@ -36,7 +36,7 @@ public class MyNewIntentService extends IntentService {
         builder.setContentTitle("Напоминание");
         builder.setContentText(name);
         builder.setSmallIcon(R.drawable.__2025_10_14_215029);
-        NotificationChannel channel = new NotificationChannel("7", "Напоминания", NotificationManager.IMPORTANCE_DEFAULT);
+        NotificationChannel channel = new NotificationChannel("7", "Напоминания", NotificationManager.IMPORTANCE_HIGH);
         channel.enableLights(true);
         channel.setLightColor(Color.green(1));
         channel.setShowBadge(true);

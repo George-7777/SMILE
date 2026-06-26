@@ -5,6 +5,7 @@ import static com.gvayt.smile.Constant.WAKE_WORD;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -68,20 +69,30 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     * Запрашивает все нужные разрешения.
      */
     public void checkPermissions() {
-        String[] permissions = getPermissions();
+        String[] permissions = new String[]{
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.FOREGROUND_SERVICE,
+                Manifest.permission.CALL_PHONE,
+                Manifest.permission.POST_NOTIFICATIONS,
+                Manifest.permission.USE_FULL_SCREEN_INTENT,
+                Manifest.permission.FOREGROUND_SERVICE,
+                Manifest.permission.FOREGROUND_SERVICE_MICROPHONE
+        };
 
         List<String> permissionsNeeded = new ArrayList<>();
         for (String permission : permissions) {
             if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                System.out.println(permission);
                 permissionsNeeded.add(permission);
             }
         }
 
         if (!permissionsNeeded.isEmpty()) {
-            requestPermissions(
-                    permissions,
-                    PERMISSION_REQUEST_CODE
-            );
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", getPackageName(), null);
+            intent.setData(uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             NotificationManager nm = getSystemService(NotificationManager.class);
@@ -93,24 +104,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 Toast.makeText(this, "Пожалуйста, разрешите приложению показывать полноэкранные уведомления для работы SOS-функции", Toast.LENGTH_LONG).show();
             }
         }
-    }
-
-    private static String[] getPermissions() {
-        String[] permissions;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            permissions = new String[]{
-                    Manifest.permission.RECORD_AUDIO,
-                    Manifest.permission.FOREGROUND_SERVICE,
-                    Manifest.permission.CALL_PHONE
-            };
-        }
-        else {
-            permissions = new String[]{
-                    Manifest.permission.RECORD_AUDIO,
-                    Manifest.permission.CALL_PHONE
-            };
-        }
-        return permissions;
     }
 
     @Override
@@ -222,6 +215,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             if (command.isEmpty()) return;
             presenter.onCommandEntered(command);
         });
+        ImageButton logoutButton = findViewById(R.id.logout_button);
+        logoutButton.setOnClickListener(view -> presenter.onLogoutClicked());
 
 // настройка поведения нижнего экрана
         BottomSheetBehavior<LinearLayout> bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);

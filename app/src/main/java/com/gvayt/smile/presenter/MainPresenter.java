@@ -83,6 +83,7 @@ public class MainPresenter implements MainContract.Presenter {
 
     @Override
     public void onLogoutClicked() {
+        model.logout();
         view.logout();
     }
 }

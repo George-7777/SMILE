@@ -6,10 +6,7 @@ import android.content.SharedPreferences;
 import com.gvayt.smile.Constant;
 import com.gvayt.smile.utils.ObjectSerializer;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class SharedPrefStorage implements LocalStorage {
@@ -48,13 +45,22 @@ public class SharedPrefStorage implements LocalStorage {
     }
 
     @Override
-    public <T> void saveList(String key, List<T> list, Class<T> clazz) throws IOException {
+    public <T> void saveList(String key, List<T> list, Class<T> clazz) {
+        System.out.println(((Serializable) list) == null);
         sharedPreferences.edit().putString(key, ObjectSerializer.serialize((Serializable) list)).apply();
     }
 
     @Override
-    public <T> List<T> getList(String key, Class<T> clazz, List<T> d) throws IOException {
-        return (List<T>) ObjectSerializer.deserialize(sharedPreferences.getString(key, ObjectSerializer.serialize(new ArrayList<>())));
+    public <T> List<T> getList(String key, Class<T> clazz, List<T> d) {
+        System.out.println("ок. Ищем в sharedPref");
+        System.out.println(sharedPreferences.getString(key, "ой-ей") + " вот такая строка");
+        List<T> list = (List<T>) ObjectSerializer.deserialize(
+                sharedPreferences.getString(key, ObjectSerializer.serialize((Serializable) d))
+        );
+        if (list == null) {
+            return d;
+        }
+        return list;
     }
 
     @Override

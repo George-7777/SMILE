@@ -52,7 +52,7 @@ public class AddTaskBottomSheetFragment extends BottomSheetDialogFragment {
 
             if (name.isEmpty() || time.isEmpty() || !checkTime) {
                 etTaskName.setError("Введите название");
-                etTaskTime.setError("Введите время");
+                etTaskTime.setError("Введите время. Пример 13:37");
                 return;
             }
 

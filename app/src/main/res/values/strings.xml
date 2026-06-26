@@ -91,4 +91,15 @@
     <string name="dialog_smile_loading_ai">*СМАЙЛИК ДУМАЕТ*</string>
     <string name="dialog_ai_error">Извините, произошла ошибка. Попробуйте позже.</string>
     <string name="dialog_radio_turn_off">Выключаю радио</string>
+    <string name="toast_tasks_update">Задания обновлены</string>
+    <string name="toast_task_added_success_kid">Задача добавлена!</string>
+    <string name="toast_task_deleted_success_kid">Задача удалена</string>
+    <string name="enter_command">Введите команду</string>
+    <string name="hint_microphone">Поговорить со СМАЙЛИКОМ</string>
+    <string name="hint_list_commands">Список команд</string>
+    <string name="hint_send_command">Отправить команду</string>
+    <string name="my_tasks_title">Мои задачи</string>
+    <string name="button_add_task_kid">Добавить задачу</string>
+    <string name="button_back_task_kid">Назад</string>
+    <string name="toast_noname_error">Произошла неизвестная ошибка</string>
 </resources>

@@ -18,17 +18,23 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface ApiService {
+    // LOGIN
+
     @GET("api/auth/login/parent")
     Call<ParentResponse> loginParent(@Header("Authorization") String credential);
 
     @GET("api/auth/login/kid")
     Call<KidResponse> loginKid(@Header("Authorization") String credential);
 
+    // REGISTER
+
     @POST("api/auth/register/parent")
     Call<ParentResponse> registerParent(@Body ParentRegisterRequest request);
 
     @POST("api/auth/register/kid")
     Call<KidResponse> registerKid(@Header("Authorization") String credential, @Body KidRegisterRequest request);
+
+    // TASKS for PARENT
 
     @GET("api/tasks/kids/{login}")
     Call<List<TaskResponse>> getTaskMyKid(@Header("Authorization") String credential, @Path("login") String kidLogin);
@@ -41,4 +47,15 @@ public interface ApiService {
 
     @GET("api/kids/{username}")
     Call<KidResponse> getKid(@Header("Authorization") String credential, @Path("username") String kidLogin);
+
+    // TASKS for KID
+
+    @GET("api/tasks")
+    Call<List<TaskResponse>> getTask(@Header("Authorization") String credential);
+
+    @POST("api/tasks")
+    Call<TaskResponse> addTask(@Header("Authorization") String credential, @Body TaskRequest taskRequest);
+
+    @DELETE("api/tasks/{id}")
+    Call<Void> deleteTask(@Header("Authorization") String credential, @Path("id") long task_id);
 }
