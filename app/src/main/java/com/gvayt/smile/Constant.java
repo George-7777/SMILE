@@ -18,5 +18,5 @@ public class Constant {
     public static final String KEY_TASKS_KID = "tasks_kid";
 
     // API
-    public static final String BASE_URL = "http://10.36.122.1:8080/";
+    public static final String BASE_URL = "http://10.36.122.1:8080/"; // Введите свой адресс сервера
 }
