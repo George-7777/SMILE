@@ -1,4 +1,5 @@
 # BACKEND SERVER https://github.com/George-7777/SMILE-BACKEND
+# ИНСТРУКЦИЯ К СБОРКЕ В ФАЙЛЕ СБОРКА.md
 
 Детский голосовой помощник "СМАЙЛИК"
 
