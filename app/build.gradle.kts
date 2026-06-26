@@ -39,6 +39,7 @@ android {
 
 dependencies {
 
+    implementation(libs.activity.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -47,7 +48,10 @@ dependencies {
     implementation(libs.cardview)
     implementation("com.google.genai:google-genai:1.23.0")
     implementation("androidx.media3:media3-exoplayer:1.0.0")
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.alphacephei:vosk-android:0.3.75@aar")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.4.0")
     implementation("net.java.dev.jna:jna:5.18.1@aar")
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.work.runtime)

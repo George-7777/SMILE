@@ -1,4 +1,4 @@
-package com.gvayt.smile.data;
+package com.gvayt.smile.model;
 
 
 import android.content.Context;
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class PreferencesManager {
+    // LEGACY
     private static final String PREF_NAME = "smile_prefs";
 
     // ключи

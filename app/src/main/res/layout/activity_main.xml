@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.commandsView.MainActivity2">
+    tools:context=".ui.commandsView.TaskActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,13 +28,15 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center"
         android:layout_marginBottom="150dp"
+        android:textSize="18sp"
         android:ems="10"
         android:inputType="text"
-        android:text="Введите команду" />
+        android:hint="@string/enter_command" />
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center|top"
         android:layout_height="100dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="561dp"
@@ -45,6 +47,7 @@
         android:layout_width="61dp"
         android:layout_height="66dp"
         android:layout_gravity="top|center"
+        android:contentDescription="@string/hint_microphone"
         app:layout_anchor="@+id/bottom_sheet"
         app:layout_anchorGravity="top|center"
         app:srcCompat="@drawable/baseline_mic_24" />
@@ -54,6 +57,7 @@
         android:layout_width="61dp"
         android:layout_height="66dp"
         android:layout_gravity="top|start"
+        android:contentDescription="@string/hint_list_commands"
         app:layout_anchor="@+id/bottom_sheet"
         app:layout_anchorGravity="top|start"
         app:layout_constraintVertical_bias="1.0"
@@ -64,12 +68,22 @@
         android:layout_width="61dp"
         android:layout_height="66dp"
         android:layout_gravity="top|end"
+        android:contentDescription="@string/hint_send_command"
         app:layout_anchor="@+id/bottom_sheet"
         app:layout_anchorGravity="top|end"
         app:layout_constraintVertical_bias="1.0"
         app:srcCompat="@drawable/outline_add_comment_24" />
 
     <include layout="@layout/bottom_sheet_persistent" />
+
+    <ImageButton
+        android:id="@+id/logout_button"
+        android:layout_width="61dp"
+        android:layout_height="66dp"
+        android:layout_gravity="top|start"
+        android:contentDescription="@string/logout"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/baseline_logout_24" />
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

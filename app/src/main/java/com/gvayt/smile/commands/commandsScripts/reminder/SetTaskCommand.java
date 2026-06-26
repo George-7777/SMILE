@@ -1,43 +1,50 @@
-package com.gvayt.smile.commands;
+package com.gvayt.smile.commands.commandsScripts.reminder;
 
-import com.gvayt.smile.commands.commandsScripts.reminder.ReminderData;
+import android.content.Context;
 
+import com.gvayt.smile.R;
+import com.gvayt.smile.commands.VoiceCommand;
+import com.gvayt.smile.contract.MainContract;
+
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CommandParser {
+public class SetTaskCommand implements VoiceCommand {
+    private final Context context;
+    private final MainContract.View view;
+    private final ReminderScheduler reminderScheduler;
 
-    public CommandType parseCommand(String command) {
-        if (command == null || command.isEmpty()) {
-            return CommandType.UNKNOWN;
-        }
-
-        String lowerCommand = command.toLowerCase().trim();
-
-        if (lowerCommand.equals("список задач")) return CommandType.SHOW_TASKS;
-        if (lowerCommand.equals("включить уведомления")) return CommandType.ENABLE_NOTIFICATIONS;
-        if (lowerCommand.equals("выключить уведомления")) return CommandType.DISABLE_NOTIFICATIONS;
-        if (lowerCommand.equals("мой баланс")) return CommandType.MY_BALANCE;
-        if (lowerCommand.equals("включи радио")) return CommandType.TURN_ON_RADIO;
-        if (lowerCommand.equals("выключи радио")) return CommandType.TURN_OFF_RADIO;
-
-        if (lowerCommand.startsWith("добавить сос-номер")) return CommandType.SET_SOS_NUMBER;
-        if (lowerCommand.startsWith("напомни") || lowerCommand.startsWith("напомнить")) {
-            return CommandType.SET_REMINDER;
-        }
-
-        return CommandType.CHAT_WITH_AI;
+    public SetTaskCommand(Context context, MainContract.View view, ReminderScheduler reminderScheduler) {
+        this.context = context;
+        this.view = view;
+        this.reminderScheduler = reminderScheduler;
     }
 
-    public String extractSosNumber(String command) {
-        String[] parts = command.split(" ");
-        if (parts.length >= 3) {
-            return parts[2];
-        }
-        return "";
+    @Override
+    public boolean matches(String voiceRequest) {
+        String lowerCommand = voiceRequest.toLowerCase();
+        return lowerCommand.startsWith("напомни") || lowerCommand.startsWith("напомнить");
     }
 
-    public ReminderData parseReminder(String command) {
+    @Override
+    public void execute(String voiceRequest) {
+        ReminderData data = parseReminder(voiceRequest);
+
+        if (data.getMessage() == null || data.getMessage().isEmpty()) {
+            view.addDialog(context.getString(R.string.dialog_reminder_failed), MainContract.DialogRole.SMILE);
+            return;
+        }
+
+        reminderScheduler.scheduleReminder(data);
+        String timeStr = reminderScheduler.getFormattedTriggerTime(data);
+
+        view.addDialog(context.getString(R.string.dialog_reminder_success, data.getMessage(), timeStr), MainContract.DialogRole.SMILE);
+    }
+
+
+    // Парсер из запроса
+    private ReminderData parseReminder(String command) {
         ReminderData data = new ReminderData();
         String lowerCommand = command.toLowerCase();
 
@@ -47,7 +54,7 @@ public class CommandParser {
         Matcher minutesMatcher = minutesPattern.matcher(lowerCommand);
         if (minutesMatcher.find()) {
             data.setType(ReminderData.ReminderType.MINUTES);
-            data.setMinutes(Integer.parseInt(minutesMatcher.group(1)));
+            data.setMinutes(Integer.parseInt(Objects.requireNonNull(minutesMatcher.group(1))));
             reminderText = extractReminderText(command, minutesMatcher.start());
             data.setMessage(reminderText);
             return data;
@@ -57,7 +64,7 @@ public class CommandParser {
         Matcher hoursMatcher = hoursPattern.matcher(lowerCommand);
         if (hoursMatcher.find()) {
             data.setType(ReminderData.ReminderType.HOURS);
-            data.setHours(Integer.parseInt(hoursMatcher.group(1)));
+            data.setHours(Integer.parseInt(Objects.requireNonNull(hoursMatcher.group(1))));
             reminderText = extractReminderText(command, hoursMatcher.start());
             data.setMessage(reminderText);
             return data;
@@ -67,8 +74,8 @@ public class CommandParser {
         Matcher timeMatcher = timePattern.matcher(lowerCommand);
         if (timeMatcher.find()) {
             data.setType(ReminderData.ReminderType.TIME_STRING);
-            data.setHour(Integer.parseInt(timeMatcher.group(1)));
-            data.setMinute(Integer.parseInt(timeMatcher.group(2)));
+            data.setHour(Integer.parseInt(Objects.requireNonNull(timeMatcher.group(1))));
+            data.setMinute(Integer.parseInt(Objects.requireNonNull(timeMatcher.group(2))));
             reminderText = extractReminderText(command, timeMatcher.start());
             data.setMessage(reminderText);
             return data;

@@ -1,4 +1,4 @@
-package com.gvayt.smile.ai;
+package com.gvayt.smile.model.ai;
 
 import android.content.Context;
 import android.os.Handler;
@@ -15,12 +15,10 @@ import java.util.List;
 public class GeminiProvider implements AIProvider {
     private static final String MODEL_ID = "gemini-2.5-flash";
     private static final String TAG = "GeminiProvider";
-    private final Context context;
     private static final int MAX_RETRIES = 10;
     private static final long RETRY_DELAY_MS = 1000;
 
-    public GeminiProvider(Context context) {
-        this.context = context;
+    public GeminiProvider() {
         setupApiKeys();
     }
 
@@ -33,7 +31,7 @@ public class GeminiProvider implements AIProvider {
 
     @Override
     public void generateResponse(String userMessage, List<String> conversationHistory, AIResponseCallback callback) {
-        generateResponse(userMessage, conversationHistory, callback, MAX_RETRIES);
+        generateResponse(userMessage, conversationHistory, callback, 0);
     }
 
     public void generateResponse(String userMessage, List<String> conversationHistory, AIResponseCallback callback, int attempts) {
@@ -57,19 +55,15 @@ public class GeminiProvider implements AIProvider {
 
     private String callGeminiApi(String userMessage, List<String> history) {
         Secret secret = new Secret();
-        try (Client client = Client.builder()
+        Client client = Client.builder()
                 .apiKey(secret.keyAI)
                 .vertexAI(true)
                 .httpOptions(HttpOptions.builder().apiVersion("v1").build())
-                .build()) {
+                .build();
 
-            String prompt = buildPrompt(userMessage, history);
-            GenerateContentResponse response = client.models.generateContent(MODEL_ID, prompt, null);
-            return response.text();
-        } catch (Exception e) {
-            System.out.println(e);
-            return "Извините, произошла ошибка. Попробуйте позже.";
-        }
+        String prompt = buildPrompt(userMessage, history);
+        GenerateContentResponse response = client.models.generateContent(MODEL_ID, prompt, null);
+        return response.text();
     }
 
     private String buildPrompt(String userMessage, List<String> history) {

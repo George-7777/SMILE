@@ -45,6 +45,7 @@ public class CallActivity extends AppCompatActivity {
                 == PackageManager.PERMISSION_GRANTED) {
             initiateCall();
         } else {
+            Log.d(TAG, "Нет разрешения");
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CALL_PHONE},
                     REQUEST_CALL_PERMISSION);

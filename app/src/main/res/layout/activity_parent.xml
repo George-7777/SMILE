@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="top">
+
+    <ImageButton
+        android:id="@+id/btn_logout"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/button_logout_hint"
+        android:layout_gravity="start"
+        android:src="@drawable/baseline_logout_24" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/logout_text"
+        android:text="@string/logout"
+        android:textSize="18sp"
+        android:layout_marginBottom="64sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/welcome_text_parent"
+        android:text="@string/template_welcome_parent"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/error_text_parent"
+        android:text="@string/error_text_parent"
+        android:textColor="@color/red"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/your_kids"
+        android:text="@string/your_kids_text"
+        android:textSize="18sp"
+        android:layout_gravity="start"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/kids_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+    </androidx.recyclerview.widget.RecyclerView>
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_add_child"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/add_kid"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/blue"
+        android:padding="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        app:cornerRadius="8dp" />
+
+</LinearLayout>
